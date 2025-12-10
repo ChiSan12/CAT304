@@ -1,12 +1,9 @@
-// backend/routes/adopters.js
 const express = require('express');
 const router = express.Router();
 const Adopter = require('../models/adopter');
 const Pet = require('../models/pet');
 
-// ===================================================================
 // AUTHENTICATION ROUTES
-// ===================================================================
 
 /**
  * POST /api/adopters/register
@@ -130,9 +127,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// ===================================================================
 // PROFILE MANAGEMENT ROUTES
-// ===================================================================
 
 /**
  * GET /api/adopters/:id
@@ -212,9 +207,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// ===================================================================
 // PET BROWSING & SEARCH ROUTES
-// ===================================================================
 
 /**
  * GET /api/adopters/pets/all
@@ -365,9 +358,8 @@ router.post('/pets/match', async (req, res) => {
   }
 });
 
-// ===================================================================
+
 // ADOPTION REQUEST ROUTES
-// ===================================================================
 
 /**
  * POST /api/adopters/:adopterId/request
@@ -472,6 +464,43 @@ router.get('/:adopterId/requests', async (req, res) => {
       message: "Error retrieving requests",
       error: error.message 
     });
+  }
+});
+
+/**
+ * DELETE /api/adopters/:adopterId/request/:petId
+ * Cancel an existing adoption request
+ */
+router.delete('/:adopterId/request/:petId', async (req, res) => {
+  try {
+    const { adopterId, petId } = req.params;
+
+    const adopter = await Adopter.findById(adopterId);
+    if (!adopter) {
+      return res.status(404).json({ success: false, message: "Adopter not found" });
+    }
+
+    // 找到并移除那个 request
+    // 我们用 filter 把不等于这个 petId 的留下来，等于的就被删掉了
+    const initialLength = adopter.adoptionRequests.length;
+    adopter.adoptionRequests = adopter.adoptionRequests.filter(
+      req => req.petId.toString() !== petId
+    );
+
+    if (adopter.adoptionRequests.length === initialLength) {
+        return res.status(400).json({ success: false, message: "Request not found" });
+    }
+
+    await adopter.save();
+
+    res.json({ 
+      success: true, 
+      message: "Request cancelled successfully" 
+    });
+
+  } catch (error) {
+    console.error('Cancel request error:', error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 

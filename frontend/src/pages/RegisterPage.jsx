@@ -5,7 +5,7 @@ import { AlertCircle, CheckCircle, User, Mail, Lock, Phone, UserCircle } from 'l
  * Adopter Registration Component
  * Allows new users to create an account
  */
-export default function RegisterPage() {
+export default function RegisterPage({ onSwitchToLogin }) {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -99,7 +99,7 @@ export default function RegisterPage() {
       if (data.success) {
         setMessage({ 
           type: 'success', 
-          text: 'Registration successful! 🎉' 
+          text: 'Registration successful! 🎉Redirecting to login...' 
         });
         
         // Reset form
@@ -111,6 +111,12 @@ export default function RegisterPage() {
           fullName: '',
           phone: ''
         });
+
+        // Automatically switch to login page after 1.5 seconds
+        setTimeout(() => {
+          if (onSwitchToLogin) onSwitchToLogin();
+        }, 1500);
+      
       } else {
         setMessage({ 
           type: 'error', 
@@ -314,7 +320,10 @@ export default function RegisterPage() {
         {/* Login Link */}
         <p className="text-center text-gray-600 mt-6">
           Already have an account?{' '}
-          <span className="text-indigo-600 hover:text-indigo-700 font-medium cursor-pointer">
+          <span 
+            className="text-indigo-600 hover:text-indigo-700 font-medium cursor-pointer"
+            onClick={onSwitchToLogin}
+          >
             Log in here
           </span>
         </p>

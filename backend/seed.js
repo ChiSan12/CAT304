@@ -1,9 +1,9 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const Pet = require('./models/pet'); // 👈 确保这里能找到你刚才建的文件
+const Pet = require('./models/pet'); 
 
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('🌱 MongoDB Connected... Starting Seed'))
+  .then(() => console.log(' MongoDB Connected... Starting Seed'))
   .catch(err => console.log(err));
 
 const pets = [
@@ -17,6 +17,7 @@ const pets = [
     labels: { temperament: ["Friendly", "Smart"], goodWith: ["Children"] },
     adoptionStatus: "Available",
     description: "A very happy golden retriever looking for a home."
+    images: [{ url: "https://i.imgur.com/your-real-dog-photo.jpg" }],
   },
   {
     name: "Mimi",
@@ -43,8 +44,8 @@ const pets = [
 ];
 
 const seedDB = async () => {
-  await Pet.deleteMany({}); // 先清空旧数据
-  await Pet.insertMany(pets); // 插入新数据
+  await Pet.deleteMany({}); 
+  await Pet.insertMany(pets); 
   console.log("✅ 3 Pets Added Successfully!");
   mongoose.connection.close();
 };

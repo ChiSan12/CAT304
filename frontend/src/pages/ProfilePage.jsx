@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Home, Dog, Save, CheckCircle } from 'lucide-react';
+import { User, Mail, MapPin, Dog, Save, CheckCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * Adopter Profile Management Component
  * Allows adopters to update their profile and set adoption preferences
  */
 export default function ProfilePage() {
-  const [adopterId] = useState('674f5a3b8c9d1e2f3a4b5c6d'); // Mock ID
+  const { user } = useAuth(); 
+
+  // === State Definitions ===
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -15,12 +18,7 @@ export default function ProfilePage() {
     fullName: '',
     email: '',
     phone: '',
-    address: {
-      street: '',
-      city: '',
-      state: '',
-      postalCode: ''
-    }
+    address: { street: '', city: '', state: '', postalCode: '' }
   });
 
   const [preferences, setPreferences] = useState({
@@ -33,46 +31,51 @@ export default function ProfilePage() {
     experienceLevel: 'First-time'
   });
 
-  // Load profile on mount
+  // --- Fetch Logic: Runs when the user state changes ---
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  // Fetch adopter profile
-  const fetchProfile = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`http://localhost:5000/api/adopters/${adopterId}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setProfile({
-          fullName: data.adopter.fullName || '',
-          email: data.adopter.email || '',
-          phone: data.adopter.phone || '',
-          address: data.adopter.address || {
-            street: '',
-            city: '',
-            state: '',
-            postalCode: ''
-          }
-        });
-        setPreferences(data.adopter.preferences || preferences);
+    // Define the fetch function inside useEffect to satisfy ESLint dependencies
+    const fetchProfile = async (id) => {
+      setLoading(true);
+      try {
+        const response = await fetch(`http://localhost:5000/api/adopters/${id}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setProfile({
+            fullName: data.adopter.fullName || '',
+            email: data.adopter.email || '',
+            phone: data.adopter.phone || '',
+            address: data.adopter.address || { street: '', city: '', state: '', postalCode: '' }
+          });
+          // Use functional update to solve dependency warning (prev => ...)
+          setPreferences(prev => data.adopter.preferences || prev); 
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
+    };
+
+    // Only fetch if the user is authenticated (not null)
+    if (user && user.id) {
+      fetchProfile(user.id);
+    } 
+    // Add an else to handle the loading state when not logged in
+    else if (!user) {
+        setLoading(false); // If no user, stop loading spinner and show "Please login"
     }
-  };
+  }, [user]); // Only depends on 'user'
 
   // Update profile
   const handleSaveProfile = async () => {
+    if (!user || !user.id) return; // Safety check
+
     setSaving(true);
     setMessage({ type: '', text: '' });
 
     try {
-      const response = await fetch(`http://localhost:5000/api/adopters/${adopterId}`, {
+      const response = await fetch(`http://localhost:5000/api/adopters/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -117,6 +120,7 @@ export default function ProfilePage() {
     }));
   };
 
+  // Show Loading Spinner
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -125,6 +129,16 @@ export default function ProfilePage() {
     );
   }
 
+  // Show Login Prompt if not logged in
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-500">Please login to view your profile.</p>
+      </div>
+    );
+  }
+
+  // --- Main Content (Only shows if user is logged in and loading is false) ---
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">

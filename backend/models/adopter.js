@@ -1,4 +1,3 @@
-// backend/models/adopter.js
 const mongoose = require('mongoose');
 
 /**
