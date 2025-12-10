@@ -4,6 +4,7 @@ import PetBrowsePage from './pages/PetBrowsePage';
 import ProfilePage from './pages/ProfilePage';
 import HomePage from './pages/HomePage';
 import './styles/HomePage.css'; // Import global styles
+import ChatBot from './components/ChatBot';
 
 function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
@@ -85,6 +86,7 @@ function App() {
         {currentPage === 'register' && <RegisterPage />}
         {currentPage === 'profile' && <ProfilePage />}
       </main>
+      <ChatBot />
     </div>
   );
 }
