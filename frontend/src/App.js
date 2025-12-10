@@ -2,43 +2,89 @@ import React from 'react';
 import RegisterPage from './pages/RegisterPage';
 import PetBrowsePage from './pages/PetBrowsePage';
 import ProfilePage from './pages/ProfilePage';
+import HomePage from './pages/HomePage';
+import './styles/HomePage.css'; // Import global styles
 
 function App() {
-  const [currentPage, setCurrentPage] = React.useState('browse');
+  const [currentPage, setCurrentPage] = React.useState('home');
+
+  // Helper function to determine the active class for styling
+  const getNavClass = (page) => 
+    currentPage === page ? 'active-link' : '';
 
   return (
     <div>
-      {/* Navigation Bar */}
-      <nav className="bg-indigo-600 text-white p-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold">PET Found Us</h1>
-          <div className="flex gap-4">
-            <button 
-              onClick={() => setCurrentPage('register')}
-              className="hover:underline"
-            >
-              Register
-            </button>
-            <button 
-              onClick={() => setCurrentPage('browse')}
-              className="hover:underline"
-            >
-              Browse Pets
-            </button>
-            <button 
-              onClick={() => setCurrentPage('profile')}
-              className="hover:underline"
-            >
-              My Profile
-            </button>
-          </div>
-        </div>
-      </nav>
+      {/* NAVIGATION BAR */}
+      <header className="header-nav"> 
+        <div className="logo">🐾 PET Found Us</div> 
+        <nav>
+          {/* HOME */}
+          <button 
+            onClick={() => setCurrentPage('home')}
+            className={`nav-button ${getNavClass('home')}`}
+          >
+            Home
+          </button>
+          
+          {/* ADOPT */}
+          <button 
+            onClick={() => setCurrentPage('browse')}
+            className={`nav-button ${getNavClass('browse')}`}
+          >
+            Adopt
+          </button>
 
-      {/* Page Content */}
-      {currentPage === 'register' && <RegisterPage />}
-      {currentPage === 'browse' && <PetBrowsePage />}
-      {currentPage === 'profile' && <ProfilePage />}
+           {/* REPORT */}
+          <button 
+            className="nav-button"
+            onClick={() => alert('Report page coming soon!')}
+          >
+            Report
+          </button>
+
+           
+          {/* Register*/}
+          <button 
+            onClick={() => setCurrentPage('register')}
+            className={`nav-button ${getNavClass('register')}`}
+          >
+            Register Pet
+          </button>
+
+          {/* MY Profile */}
+          <button 
+            onClick={() => setCurrentPage('profile')}
+            className={`nav-button ${getNavClass('profile')}`}
+          >
+            My Profile
+          </button>
+
+          
+          {/* My Dashboard */}
+          <button 
+            className="nav-button"
+            onClick={() => alert('My dashboard coming soon!')}
+          >
+            Dashboard
+          </button>
+          
+          {/* CONTACT */}
+          <button 
+            className="nav-button"
+            onClick={() => alert('Contact page coming soon!')}
+          >
+            Contact
+          </button>
+        </nav>
+      </header>
+
+      {/* PAGE CONTENT */}
+      <main>
+        {currentPage === 'home' && <HomePage />}
+        {currentPage === 'browse' && <PetBrowsePage />}
+        {currentPage === 'register' && <RegisterPage />}
+        {currentPage === 'profile' && <ProfilePage />}
+      </main>
     </div>
   );
 }
