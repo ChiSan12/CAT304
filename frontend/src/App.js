@@ -10,9 +10,10 @@ import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/MyDashboard';
 import ReportPage from './pages/ReportPage';
 
-// Components & Styles
-import './styles/HomePage.css';
+// Components
 import ChatBot from './components/ChatBot';
+
+import './styles/HomePage.css';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -31,12 +32,14 @@ function App() {
     setCurrentPage(page);
   };
 
-  // Active link styling
   const isActive = (page) =>
-    currentPage === page ? 'active-link' : '';
+    currentPage === page
+      ? 'text-orange-500 font-semibold'
+      : 'text-gray-600';
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
+
       {/* ================= NAV BAR ================= */}
       <header className="header-nav">
         <div
@@ -59,7 +62,7 @@ function App() {
             className={`nav-button ${isActive('report')}`}
             onClick={() => goTo('report')}
           >
-            Report
+            Report Strays
           </button>
 
           {user && (
@@ -112,8 +115,8 @@ function App() {
       </header>
 
       {/* ================= PAGE CONTENT ================= */}
-      <main>
-        {currentPage === 'home' && <HomePage />}
+      <main className="flex-grow">
+        {currentPage === 'home' && <HomePage goTo={goTo} />}
         {currentPage === 'browse' && <PetBrowsePage />}
         {currentPage === 'report' && <ReportPage />}
         {currentPage === 'dashboard' && <DashboardPage />}
