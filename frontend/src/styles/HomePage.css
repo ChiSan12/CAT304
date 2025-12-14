@@ -373,6 +373,13 @@ footer p {
     }
 }
 
+/* --- Contact Us Font Override --- */
+.contact-only {
+    font-family: 'Poppins', 'Nunito', 'Inter', sans-serif;
+    font-size: 1.05em;
+    color: #4A5568;
+}
+
 /* --- Responsive Design --- */
 @media (max-width: 900px) {
     .content-sections {

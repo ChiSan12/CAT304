@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Mail, Phone, MapPin } from 'lucide-react';
+import { FaInstagram, FaFacebookF } from 'react-icons/fa';
 import '../styles/HomePage.css';
 
 // --- Data for the Homepage ---
@@ -118,9 +120,45 @@ function HomePage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer>
-        <p>© 2025 PET Found Us. All Rights Reserved. Made with 💖 for our furry friends.</p>
+      {/* Contact Footer */}
+      <footer className="bg-orange-50 py-16">
+        <div className="max-w-md mx-auto">
+
+          <h2 className="text-center text-3xl font-extrabold text-orange-400 mb-8">
+            CONTACT US
+          </h2>
+
+          <div className="space-y-6 text-orange-400 text-lg text-left">
+
+            <div className="flex items-center gap-4">
+              <Mail size={26} />
+              <span className="font-medium">
+                lovemypetshaven@gmail.com
+              </span>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <Phone size={26} />
+              <span className="font-medium">
+                +6019-6632828 (Aileen)
+              </span>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <MapPin size={26} />
+              <span className="font-medium leading-relaxed">
+                A-2-G, Galeri Klang Sentral, Jalan Klang Sentral 15/KU5,<br />
+                41050 Klang, Selangor, Malaysia.
+              </span>
+            </div>
+
+          </div>
+        </div>
+
+        {/* COPYRIGHT */}
+        <p className="text-center text-sm text-gray-500 mt-12">
+          © 2025 PET Found Us. All Rights Reserved. Made with 💖 for our furry friends.
+        </p>
       </footer>
     </div>
   );
