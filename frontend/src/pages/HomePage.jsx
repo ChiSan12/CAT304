@@ -1,129 +1,190 @@
-import React, { useState, useEffect } from 'react';
-import '../styles/HomePage.css';
+import React from "react";
+import { Mail, Phone, MapPin } from 'lucide-react';
 
-// --- Data for the Homepage ---
-
-const slides = [
-  { 
-    id: 1, 
-    img: '/images/dog_in_cage.jpg',
-    title: 'TNRM', 
-    subtitle: 'Trap-Neuter-Release-Manage',
-    cta: 'Make a Difference Today',
-  },
-  { 
-    id: 2, 
-    img: '/images/happy_dog_family.jpg', 
-    title: 'Forever Homes', 
-    subtitle: 'Give a Pet a Second Chance',
-    cta: 'Find Your Perfect Match',
-  },
-];
-
-const featuredPets = [
-  { name: "Buddy", img: '/images/dog1.jpg' }, 
-  { name: "Mittens", img: '/images/cat1.jpg' },
-  { name: "Pippin", img: '/images/dog2.jpg' },
-];
-
-function HomePage() {
-  // --- Carousel State and Logic ---
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
-  };
-
-  // Auto-play the carousel
-  useEffect(() => {
-    const interval = setInterval(nextSlide, 5000); 
-    return () => clearInterval(interval);
-  }, []);
-
-  const slide = slides[currentSlide];
-
-  // --- JSX Rendering ---
+export default function HomePage({ goTo }) {
   return (
-    <div className="homepage">
+    <div className="w-full">
 
-      {/* Hero Section with Carousel */}
-      <section className="carousel-container">
-        <img 
-          src={slide.img} 
-          alt="Featured pet for adoption" 
-          className="carousel-image" 
-        />
+      <section
+        className="relative h-[100vh] bg-cover bg-center"
+        style={{
+          backgroundImage: "url('/images/homepage.jpg')",
+        }}
+      >
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/0"></div>
 
-        {/* Overlay Content */}
-        <div className="carousel-overlay">
-          <div className="overlay-text left-content">
-            <h1>{slide.title}</h1>
-            <p>{slide.subtitle}</p>
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 h-full flex items-center">
+          <div className="max-w-xl text-white">
+            <p className="text-3xl font-semibold tracking-wide mb-4">
+              Save your next
+            </p>
+
+            <h1 className="text-5xl md:text-6xl font-extrabold leading-tight">
+              BEST FRIEND
+            </h1>
+
+            <p className="mt-6 text-lg text-gray-200 text-xl">
+              Connecting Shelters, Adopters & Communities
+            </p>
+
+            <div className="mt-8 flex gap-4">
+            <button
+              onClick={() => goTo('browse')}
+              className="px-8 py-4 bg-gray-300 text-gray-900 text-base rounded-lg font-bold hover:bg-gray-200 transition"
+            >
+              🐾 Find a Pet
+            </button>
+
+            <button
+              onClick={() => goTo('report')}
+              className="px-8 py-4 bg-yellow-400 text-gray-900 text-base rounded-xl font-bold hover:bg-yellow-500 transition"
+            >
+              📍 Report a Stray
+            </button>
           </div>
-          
-          <div className="overlay-text right-content">
-            <p>{slide.cta}</p>
-            <button className="cta-button">Learn More</button>
           </div>
         </div>
-
-        {/* Navigation Arrows */}
-        <button className="nav-arrow prev" onClick={prevSlide}>‹</button>
-        <button className="nav-arrow next" onClick={nextSlide}>›</button>
       </section>
 
-      {/* Main Content Sections */}
-      <main className="content-sections">
-        
-        {/* Featured Pets */}
-        <section className="feature-section">
-          <h2>🐾 Featured Pets</h2>
-          <div className="pet-list">
-            {featuredPets.map((pet) => (
-              <div key={pet.name} className="pet-card">
-                <img src={pet.img} alt={pet.name} />
-                <p>{pet.name}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+      {/* ================= WHAT WE DO ================= */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold text-gray-800">
+            What We Do
+          </h2>
 
-        {/* Our Mission */}
-        <section className="mission-section">
-          <h2>💛 Our Mission</h2>
-          <p>
-            At PET Found us, we're dedicated to rescuing, rehabilitating, and rehoming 
-            animals in need. Every pet deserves a loving home, and we work tirelessly 
-            to match compassionate families with their perfect companions. Through our 
-            comprehensive TNRM program and community outreach, we're creating a better 
-            world for animals one adoption at a time. Join us in our mission to make 
-            every tail wag and every purr count.
+          <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
+            PET Found Us is a smart pet rescue & rehoming platform for safer,
+            more compassionate cities.
           </p>
-        </section>
 
-        {/* How You Can Help */}
-        <section className="help-section">
-          <h2>🤝 How You Can Help</h2>
-          <ul>
-            <li>🏡 <strong>Adopt</strong> - Give a pet their forever home</li>
-            <li>🏠 <strong>Foster</strong> - Provide temporary care and love</li>
-            <li>💝 <strong>Donate</strong> - Support medical care and supplies</li>
-            <li>✋ <strong>Volunteer</strong> - Share your time and skills</li>
-            <li>📢 <strong>Spread the Word</strong> - Help us reach more families</li>
-          </ul>
-        </section>
-      </main>
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <FeatureCard
+              title="🧠 AI-Powered Pet Matching"
+              text="Match adopters with pets based on lifestyle and compatibility score."
+            />
+            <FeatureCard
+              title="📍 Stray Animal Reporting"
+              text="Report stray cats and dogs with real-time location tracking."
+            />
+            <FeatureCard
+              title="🐕 Adoption Management"
+              text="Centralised pet listings and adoption request handling."
+            />
+            <FeatureCard
+              title="❤️ Post-Adoption Support"
+              text="Health reminders and veterinary clinic recommendations."
+            />
+          </div>
+        </div>
+      </section>
 
-      {/* Footer */}
-      <footer>
-        <p>© 2025 PET Found Us. All Rights Reserved. Made with 💖 for our furry friends.</p>
-      </footer>
+      {/* ================= COMMUNITY IMPACT ================= */}
+      <section className="py-20 bg-orange-50 text-center">
+        <h2 className="text-3xl font-bold text-gray-800">
+          Why It Matters
+        </h2>
+
+        <p className="mt-6 max-w-5xl mx-auto text-xl text-gray-700">
+          Thousands of stray animals face neglect and abandonment every year.
+          PET Found Us connects shelters, adopters and communities to improve
+          rescue efficiency and long-term animal welfare.
+        </p>
+
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <Stat number="120+" label="Pets Rescued" />
+          <Stat number="80+" label="Successful Adoptions" />
+          <Stat number="200+" label="Stray Reports Logged" />
+        </div>
+      </section>
+
+      {/* ================= HOW IT WORKS ================= */}
+      <section className="py-20 bg-white text-center">
+        <h2 className="text-3xl font-bold text-gray-800">
+          How It Works
+        </h2>
+
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-5 gap-4 max-w-6xl mx-auto text-xl">
+          <Step text="Create an account" />
+          <Step text="Browse pets or get AI recommendations" />
+          <Step text="Send adoption request or report a stray" />
+          <Step text="Shelter reviews & responds" />
+          <Step text="Post-adoption health tracking continues" />
+        </div>
+      </section>
+
+      {/* =======FOOTER========== */ }
+      <footer className="bg-gray-900 text-white py-20">
+      <div className="max-w-4xl mx-auto px-6 flex flex-col items-center text-center">
+
+        {/* TITLE */}
+        <h2 className="text-xl md:text-2xl font-bold mb-10 tracking-wide">
+          CONTACT US
+        </h2>
+
+        {/* CONTACT INFO */}
+        <div className="space-y-6 text-sm md:text-base text-left">
+
+          <div className="flex items-center gap-4">
+            <Mail size={26} />
+            <span className="font-medium">
+              petfoundus@gmail.com
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Phone size={26} />
+            <span className="font-medium">
+              +605-6632828 (Aileen)
+            </span>
+          </div>
+
+          <div className="flex items-start gap-4">
+            <MapPin size={26} />
+            <span className="font-medium leading-relaxed max-w-xl">
+              A-2-G, Galeri Klang Sentral, Jalan Klang Sentral 15/KU5,<br />
+              41050 Klang, Selangor, Malaysia.
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      {/* COPYRIGHT */}
+      <p className="text-center text-sm text-gray-400 mt-16">
+        © 2025 PET Found Us. All Rights Reserved.
+      </p>
+    </footer>
     </div>
   );
 }
 
-export default HomePage;
+/* ================= SMALL COMPONENTS ================= */
+
+function FeatureCard({ title, text }) {
+  return (
+    <div className="p-6 border rounded-2xl hover:shadow-md transition">
+      <h3 className="font-semibold text-gray-800">{title}</h3>
+      <p className="mt-2 text-sm text-gray-600">{text}</p>
+    </div>
+  );
+}
+
+function Stat({ number, label }) {
+  return (
+    <div>
+      <p className="text-2xl font-bold text-orange-600">{number}</p>
+      <p className="text-sm text-gray-600">{label}</p>
+    </div>
+  );
+}
+
+function Step({ text }) {
+  return (
+    <div className="p-4 rounded-xl bg-orange-50 text-sm text-gray-700">
+      {text}
+    </div>
+  );
+}

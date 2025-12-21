@@ -1,170 +1,143 @@
 import React, { useState } from 'react';
-import { useAuth } from './context/AuthContext'; // Import Auth Hook for state management
+import { useAuth } from './context/AuthContext';
 
-// --- Import All Page Components ---
-import RegisterPage from './pages/RegisterPage'; // Used for Sign Up functionality
+// Pages
+import HomePage from './pages/HomePage';
+import RegisterPage from './pages/RegisterPage';
+import LoginPage from './pages/LoginPage';
 import PetBrowsePage from './pages/PetBrowsePage';
 import ProfilePage from './pages/ProfilePage';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/MyDashboard';
+import ReportPage from './pages/ReportPage';
 
-// --- Import Styles and Components ---
-import './styles/HomePage.css';
+// Components
 import ChatBot from './components/ChatBot';
 
+import './styles/HomePage.css';
+
 function App() {
-  // Current page state controls which component is displayed
   const [currentPage, setCurrentPage] = useState('home');
-  
-  // Get user state and logout function from Auth Context
   const { user, logout } = useAuth();
 
-  // --- Navigation Click Handler ---
-  const handleNavClick = (page) => {
-    // 🔒 Protected Route Logic: Check if the user is trying to access 'profile' without being logged in
-    if (page === 'profile' && !user) {
-      const confirmLogin = window.confirm("You must be logged in to view your profile. Would you like to sign in now?");
-      if (confirmLogin) {
-        setCurrentPage('login'); // Redirect to Login page
-      }
-      return; // Stop navigation attempt
+  // Protected navigation
+  const goTo = (page) => {
+    if (
+      (page === 'profile' || page === 'dashboard' || page === 'report') &&
+      !user
+    ) {
+      alert('Please login first.');
+      setCurrentPage('login');
+      return;
     }
-    
-    // Normal navigation
     setCurrentPage(page);
   };
 
-  // --- Helper function for styling the active navigation link ---
-  const getNavClass = (page) => 
-    currentPage === page ? 'active-link' : '';
+  const isActive = (page) =>
+    currentPage === page
+      ? 'text-orange-500 font-semibold'
+      : 'text-gray-600';
 
   return (
-    <div>
-      {/* ================= NAVIGATION BAR ================= */}
-      <header className="header-nav"> 
-        {/* Logo: Click to return Home */}
-        <div 
-          className="logo" 
-          onClick={() => setCurrentPage('home')} 
-          style={{cursor:'pointer'}}
+    <div className="min-h-screen flex flex-col">
+
+      {/* ================= NAV BAR ================= */}
+      <header className="header-nav">
+        <div
+          className="logo"
+          style={{ cursor: 'pointer' }}
+          onClick={() => setCurrentPage('home')}
         >
           🐾 PET Found Us
-        </div> 
-        
+        </div>
+
         <nav>
-          {/* --- 1. Public Routes (Always Visible) --- */}
-          <button 
-            onClick={() => handleNavClick('home')}
-            className={`nav-button ${getNavClass('home')}`}
+          <button
+            className={`nav-button ${isActive('browse')}`}
+            onClick={() => goTo('browse')}
           >
-            Home
-          </button>
-          
-          <button 
-            onClick={() => handleNavClick('browse')}
-            className={`nav-button ${getNavClass('browse')}`}
-          >
-            Adopt
+            Browse Pets
           </button>
 
-          <button 
-            className="nav-button"
-            onClick={() => alert('Report page coming soon!')}
+          <button
+            className={`nav-button ${isActive('report')}`}
+            onClick={() => goTo('report')}
           >
-            Report
+            Report Strays
           </button>
-           
-          {/* --- 2. Authentication Conditional Rendering --- */}
+
+          {user && (
+            <button
+              className={`nav-button ${isActive('dashboard')}`}
+              onClick={() => goTo('dashboard')}
+            >
+              Dashboard
+            </button>
+          )}
+
           {user ? (
-            // ✅ Logged In State: Show Profile, Dashboard, and Logout
             <>
-              <button 
-                onClick={() => handleNavClick('profile')}
-                className={`nav-button ${getNavClass('profile')}`}
+              <button
+                className={`nav-button ${isActive('profile')}`}
+                onClick={() => goTo('profile')}
               >
-                My Profile
+                Profile
               </button>
 
-              <button 
+              <button
                 className="nav-button"
-                onClick={() => alert('My dashboard coming soon!')}
-              >
-                Dashboard
-              </button>
-
-              {/* Logout Button */}
-              <button 
-                className="nav-button"
-                style={{color: '#ff4d4d', fontWeight: 'bold'}}
+                style={{ color: '#ff4d4d', fontWeight: 'bold' }}
                 onClick={() => {
-                  logout(); // Clear user session
-                  setCurrentPage('home'); // Redirect to home page
-                  alert("You have been safely logged out.");
+                  logout();
+                  setCurrentPage('home');
                 }}
               >
                 Logout
               </button>
             </>
           ) : (
-            // ❌ Logged Out State: Show Sign Up and Sign In
             <>
-              {/* Sign Up (Maps to RegisterPage component) */}
-              <button 
-                onClick={() => handleNavClick('register')}
-                className={`nav-button ${getNavClass('register')}`}
+              <button
+                className={`nav-button ${isActive('login')}`}
+                onClick={() => setCurrentPage('login')}
+              >
+                Login
+              </button>
+
+              <button
+                className={`nav-button ${isActive('register')}`}
+                onClick={() => setCurrentPage('register')}
               >
                 Sign Up
               </button>
-
-              {/* Sign In */}
-              <button 
-                onClick={() => setCurrentPage('login')}
-                className={`nav-button ${getNavClass('login')}`}
-              >
-                Sign In
-              </button>
             </>
           )}
-
-          {/* --- 3. Additional Public Button --- */}
-          <button 
-            className="nav-button"
-            onClick={() => alert('Contact page coming soon!')}
-          >
-            Contact
-          </button>
-
         </nav>
       </header>
 
-      {/* ================= PAGE CONTENT AREA ================= */}
-      <main>
-        {currentPage === 'home' && <HomePage />}
-        
+      {/* ================= PAGE CONTENT ================= */}
+      <main className="flex-grow">
+        {currentPage === 'home' && <HomePage goTo={goTo} />}
         {currentPage === 'browse' && <PetBrowsePage />}
-        
-        {/* RegisterPage (Sign Up) receives a callback to redirect to Login on success */}
+        {currentPage === 'report' && <ReportPage />}
+        {currentPage === 'dashboard' && <DashboardPage />}
+        {currentPage === 'profile' && <ProfilePage />}
+
+        {currentPage === 'login' && (
+          <LoginPage
+            onLoginSuccess={() => setCurrentPage('home')}
+            onSwitchToRegister={() => setCurrentPage('register')}
+          />
+        )}
+
         {currentPage === 'register' && (
           <RegisterPage
-          // onSwitchToLogin is used in RegisterPage's handleSubmit after successful registration
-          onSwitchToLogin={() => setCurrentPage('login')} 
-          />
-        )} 
-        
-        {currentPage === 'profile' && <ProfilePage />}
-        
-        {/* LoginPage receives two callbacks for navigation: success and switch-to-register */}
-        {currentPage === 'login' && (
-          <LoginPage 
-            onLoginSuccess={() => setCurrentPage('home')} 
-            onSwitchToRegister={() => setCurrentPage('register')}
+            onSwitchToLogin={() => setCurrentPage('login')}
           />
         )}
       </main>
 
-      {/* ================= FLOATING CHATBOT ================= */}
+      {/* ================= CHATBOT ================= */}
       <ChatBot />
-
     </div>
   );
 }
