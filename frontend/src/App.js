@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from './context/AuthContext';
+import { Home as HomeIcon } from 'lucide-react'; 
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -14,6 +15,7 @@ import ReportPage from './pages/ReportPage';
 import ChatBot from './components/ChatBot';
 
 import './styles/HomePage.css';
+import './styles/PetStyles.css';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -51,6 +53,16 @@ function App() {
         </div>
 
         <nav>
+          {/* 🏠 新增 Home 按钮 */}
+          <button
+            className={`nav-button ${isActive('home')}`}
+            onClick={() => setCurrentPage('home')}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <HomeIcon size={18} />
+            Home
+          </button>
+
           <button
             className={`nav-button ${isActive('browse')}`}
             onClick={() => goTo('browse')}

@@ -1,53 +1,324 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const Pet = require('./models/pet'); 
+const Shelter = require('./models/shelter');
 
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log(' MongoDB Connected... Starting Seed'))
-  .catch(err => console.log(err));
+  .then(() => console.log('✅ MongoDB Connected... Adding More Pets'))
+  .catch(err => console.log('❌ Connection Error:', err));
 
-const pets = [
-  {
-    name: "Lucky",
-    species: "Dog",
-    breed: "Golden Retriever",
-    gender: "Male",
-    age: { years: 2, months: 0 },
-    size: "Large",
-    labels: { temperament: ["Friendly", "Smart"], goodWith: ["Children"] },
-    adoptionStatus: "Available",
-    description: "A very happy golden retriever looking for a home."
-    images: [{ url: "https://i.imgur.com/your-real-dog-photo.jpg" }],
-  },
-  {
-    name: "Mimi",
-    species: "Cat",
-    breed: "Siamese",
-    gender: "Female",
-    age: { years: 1, months: 6 },
-    size: "Small",
-    labels: { temperament: ["Calm", "Independent"], goodWith: ["Elderly"] },
-    adoptionStatus: "Available",
-    description: "Elegant and calm cat."
-  },
-  {
-    name: "Rocky",
-    species: "Dog",
-    breed: "Bulldog",
-    gender: "Male",
-    age: { years: 3, months: 0 },
-    size: "Medium",
-    labels: { temperament: ["Lazy", "Gentle"], goodWith: ["Other Dogs"] },
-    adoptionStatus: "Available",
-    description: "Loves to sleep and eat."
+/**
+ * 🎯 如何添加宠物图片的 3 种方法：
+ * 
+ * 1. Unsplash (推荐 - 免费高质量图片)
+ *    格式: https://images.unsplash.com/photo-[ID]?w=600&q=80
+ *    例子: https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&q=80
+ * 
+ * 2. Imgur (需要上传)
+ *    - 去 https://imgur.com/upload
+ *    - 上传图片
+ *    - 右键 > "Copy image address"
+ *    - 粘贴到 url 字段
+ * 
+ * 3. 本地图片 (Advanced)
+ *    - 放在 public/images/ 文件夹
+ *    - url: "/images/your-pet.jpg"
+ */
+
+const addMorePets = async () => {
+  try {
+    // 获取 Shelter (假设已经创建)
+    let shelter = await Shelter.findOne({ email: 'admin@petfoundus.com' });
+    
+    if (!shelter) {
+      console.log('⚠️  Shelter not found. Creating one...');
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      shelter = await Shelter.create({
+        name: 'Pet Found Us',
+        email: 'admin@petfoundus.com',
+        password: hashedPassword,
+        phone: '+6016-5703369',
+        location: {
+          address: 'A-2-G, Pet Found Us',
+          city: 'Gelugor',
+          state: 'Penang'
+        }
+      });
+    }
+
+    console.log(`🏢 Using Shelter: ${shelter.name}`);
+
+    // ============================================
+    // 🐶 更多狗狗
+    // ============================================
+    const newPets = [
+      {
+        name: "Charlie",
+        species: "Dog",
+        breed: "Beagle",
+        gender: "Male",
+        age: { years: 3, months: 6 },
+        size: "Medium",
+        shelterId: shelter._id,
+        images: [{ 
+          url: "https://images.unsplash.com/photo-1505628346881-b72b27e84530?w=600&q=80" 
+        }],
+        labels: { 
+          temperament: ["Friendly", "Playful"], 
+          goodWith: ["Children", "Other Dogs"] 
+        },
+        healthStatus: {
+          vaccinated: true,
+          neutered: true,
+          medicalConditions: []
+        },
+        adoptionStatus: "Available",
+        description: "Charlie is a friendly Beagle who loves to play and explore. He's great with kids and gets along well with other dogs. Perfect for an active family!"
+      },
+      
+      {
+        name: "Luna",
+        species: "Dog",
+        breed: "Husky Mix",
+        gender: "Female",
+        age: { years: 2, months: 0 },
+        size: "Large",
+        shelterId: shelter._id,
+        images: [{ 
+          url: "https://images.unsplash.com/photo-1568572933382-74d440642117?w=600&q=80" 
+        }],
+        labels: { 
+          temperament: ["Energetic", "Friendly"], 
+          goodWith: ["Other Dogs"] 
+        },
+        healthStatus: {
+          vaccinated: true,
+          neutered: false,
+          medicalConditions: []
+        },
+        adoptionStatus: "Available",
+        description: "Beautiful Husky mix with striking blue eyes. Luna is very energetic and needs plenty of exercise. Best suited for active owners with dog experience."
+      },
+
+      {
+        name: "Cooper",
+        species: "Dog",
+        breed: "Corgi",
+        gender: "Male",
+        age: { years: 1, months: 8 },
+        size: "Small",
+        shelterId: shelter._id,
+        images: [{ 
+          url: "https://images.unsplash.com/photo-1546527868-ccb7ee7dfa6a?w=600&q=80" 
+        }],
+        labels: { 
+          temperament: ["Playful", "Friendly"], 
+          goodWith: ["Children", "Other Dogs", "Elderly"] 
+        },
+        healthStatus: {
+          vaccinated: true,
+          neutered: true,
+          medicalConditions: []
+        },
+        adoptionStatus: "Available",
+        description: "Adorable Corgi with short legs and a big personality! Cooper loves everyone he meets and is perfect for families or seniors looking for a loyal companion."
+      },
+
+      {
+        name: "Daisy",
+        species: "Dog",
+        breed: "Poodle Mix",
+        gender: "Female",
+        age: { years: 4, months: 0 },
+        size: "Small",
+        shelterId: shelter._id,
+        images: [{ 
+          url: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=600&q=80" 
+        }],
+        labels: { 
+          temperament: ["Calm", "Friendly"], 
+          goodWith: ["Children", "Elderly", "Single Adults"] 
+        },
+        healthStatus: {
+          vaccinated: true,
+          neutered: true,
+          medicalConditions: []
+        },
+        adoptionStatus: "Available",
+        description: "Sweet and gentle Poodle mix with hypoallergenic fur. Daisy is perfect for apartment living and loves to cuddle on the couch."
+      },
+
+      {
+        name: "Zeus",
+        species: "Dog",
+        breed: "German Shepherd",
+        gender: "Male",
+        age: { years: 5, months: 6 },
+        size: "Large",
+        shelterId: shelter._id,
+        images: [{ 
+          url: "https://images.unsplash.com/photo-1568393691622-c7ba131d63b4?w=600&q=80" 
+        }],
+        labels: { 
+          temperament: ["Calm", "Friendly"], 
+          goodWith: ["Other Dogs"] 
+        },
+        healthStatus: {
+          vaccinated: true,
+          neutered: true,
+          medicalConditions: ["Mild arthritis - requires joint supplements"]
+        },
+        adoptionStatus: "Available",
+        description: "Majestic German Shepherd looking for a peaceful retirement home. Zeus is well-trained and calm, perfect for experienced dog owners."
+      },
+
+      // ============================================
+      // 🐱 更多猫咪
+      // ============================================
+      {
+        name: "Oliver",
+        species: "Cat",
+        breed: "Tabby",
+        gender: "Male",
+        age: { years: 2, months: 3 },
+        size: "Medium",
+        shelterId: shelter._id,
+        images: [{ 
+          url: "https://images.unsplash.com/photo-1574158622682-e40e69881006?w=600&q=80" 
+        }],
+        labels: { 
+          temperament: ["Playful", "Friendly"], 
+          goodWith: ["Children", "Other Cats"] 
+        },
+        healthStatus: {
+          vaccinated: true,
+          neutered: true,
+          medicalConditions: []
+        },
+        adoptionStatus: "Available",
+        description: "Playful tabby cat who loves toys and attention. Oliver gets along great with other cats and children. A perfect family pet!"
+      },
+
+      {
+        name: "Nala",
+        species: "Cat",
+        breed: "Persian",
+        gender: "Female",
+        age: { years: 3, months: 0 },
+        size: "Medium",
+        shelterId: shelter._id,
+        images: [{ 
+          url: "https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=600&q=80" 
+        }],
+        labels: { 
+          temperament: ["Calm", "Independent"], 
+          goodWith: ["Single Adults", "Elderly"] 
+        },
+        healthStatus: {
+          vaccinated: true,
+          neutered: true,
+          medicalConditions: []
+        },
+        adoptionStatus: "Available",
+        description: "Elegant Persian cat with luxurious fur. Nala is calm and prefers a quiet environment. She requires regular grooming."
+      },
+
+      {
+        name: "Whiskers",
+        species: "Cat",
+        breed: "Domestic Shorthair",
+        gender: "Male",
+        age: { years: 1, months: 0 },
+        size: "Small",
+        shelterId: shelter._id,
+        images: [{ 
+          url: "https://images.unsplash.com/photo-1529778873920-4da4926a72c2?w=600&q=80" 
+        }],
+        labels: { 
+          temperament: ["Playful", "Energetic"], 
+          goodWith: ["Children", "Other Cats"] 
+        },
+        healthStatus: {
+          vaccinated: true,
+          neutered: false,
+          medicalConditions: []
+        },
+        adoptionStatus: "Available",
+        description: "Young and energetic kitten full of life! Whiskers loves to play and would thrive in a home with other playful cats or active children."
+      },
+
+      {
+        name: "Cleo",
+        species: "Cat",
+        breed: "Calico",
+        gender: "Female",
+        age: { years: 5, months: 0 },
+        size: "Medium",
+        shelterId: shelter._id,
+        images: [{ 
+          url: "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?w=600&q=80" 
+        }],
+        labels: { 
+          temperament: ["Independent", "Calm"], 
+          goodWith: ["Single Adults"] 
+        },
+        healthStatus: {
+          vaccinated: true,
+          neutered: true,
+          medicalConditions: []
+        },
+        adoptionStatus: "Available",
+        description: "Beautiful calico cat with a quiet and independent personality. Cleo prefers her own space but will show affection on her terms."
+      },
+
+      {
+        name: "Mittens",
+        species: "Cat",
+        breed: "Maine Coon Mix",
+        gender: "Female",
+        age: { years: 3, months: 6 },
+        size: "Large",
+        shelterId: shelter._id,
+        images: [{ 
+          url: "https://images.unsplash.com/photo-1511044568932-338cba0ad803?w=600&q=80" 
+        }],
+        labels: { 
+          temperament: ["Friendly", "Calm"], 
+          goodWith: ["Children", "Other Cats", "Elderly"] 
+        },
+        healthStatus: {
+          vaccinated: true,
+          neutered: true,
+          medicalConditions: []
+        },
+        adoptionStatus: "Available",
+        description: "Gentle giant! Mittens is a large Maine Coon mix with a sweet disposition. She's great with everyone and loves to be near her family."
+      }
+    ];
+
+    // 插入新宠物
+    const createdPets = await Pet.insertMany(newPets);
+    
+    // 更新 Shelter 的 pets 数组
+    shelter.pets = [...shelter.pets, ...createdPets.map(pet => pet._id)];
+    await shelter.save();
+
+    console.log(`\n✅ Successfully added ${createdPets.length} new pets!`);
+    console.log('\n📋 New Pets List:');
+    createdPets.forEach(pet => {
+      console.log(`   - ${pet.name} (${pet.species}, ${pet.breed}, ${pet.size})`);
+    });
+
+    console.log(`\n🏢 Total pets in ${shelter.name}: ${shelter.pets.length}`);
+    
+    mongoose.connection.close();
+    console.log('\n🎉 Done! Run your app to see the new pets!');
+    
+  } catch (error) {
+    console.error('❌ Error adding pets:', error);
+    mongoose.connection.close();
   }
-];
-
-const seedDB = async () => {
-  await Pet.deleteMany({}); 
-  await Pet.insertMany(pets); 
-  console.log("✅ 3 Pets Added Successfully!");
-  mongoose.connection.close();
 };
 
-seedDB();
+addMorePets();

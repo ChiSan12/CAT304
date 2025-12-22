@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, MapPin, Dog, Save, CheckCircle } from 'lucide-react';
+import { User, Mail, MapPin, Dog, Save, CheckCircle, Home, Phone } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-/**
- * Adopter Profile Management Component
- * Allows adopters to update their profile and set adoption preferences
- */
 export default function ProfilePage() {
   const { user } = useAuth(); 
 
-  // === State Definitions ===
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  
 
   const [profile, setProfile] = useState({
     fullName: '',
@@ -31,9 +27,7 @@ export default function ProfilePage() {
     experienceLevel: 'First-time'
   });
 
-  // --- Fetch Logic: Runs when the user state changes ---
   useEffect(() => {
-    // Define the fetch function inside useEffect to satisfy ESLint dependencies
     const fetchProfile = async (id) => {
       setLoading(true);
       try {
@@ -47,7 +41,6 @@ export default function ProfilePage() {
             phone: data.adopter.phone || '',
             address: data.adopter.address || { street: '', city: '', state: '', postalCode: '' }
           });
-          // Use functional update to solve dependency warning (prev => ...)
           setPreferences(prev => data.adopter.preferences || prev); 
         }
       } catch (error) {
@@ -57,19 +50,15 @@ export default function ProfilePage() {
       }
     };
 
-    // Only fetch if the user is authenticated (not null)
     if (user && user.id) {
       fetchProfile(user.id);
-    } 
-    // Add an else to handle the loading state when not logged in
-    else if (!user) {
-        setLoading(false); // If no user, stop loading spinner and show "Please login"
+    } else if (!user) {
+      setLoading(false);
     }
-  }, [user]); // Only depends on 'user'
+  }, [user]);
 
-  // Update profile
   const handleSaveProfile = async () => {
-    if (!user || !user.id) return; // Safety check
+    if (!user || !user.id) return;
 
     setSaving(true);
     setMessage({ type: '', text: '' });
@@ -93,6 +82,9 @@ export default function ProfilePage() {
           type: 'success', 
           text: 'Profile updated successfully! ✅' 
         });
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       } else {
         setMessage({ 
@@ -110,7 +102,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Toggle array preference
   const toggleArrayPreference = (key, value) => {
     setPreferences(prev => ({
       ...prev,
@@ -120,16 +111,14 @@ export default function ProfilePage() {
     }));
   };
 
-  // Show Loading Spinner
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-[#FF8C42] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  // Show Login Prompt if not logged in
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -138,22 +127,30 @@ export default function ProfilePage() {
     );
   }
 
-  // --- Main Content (Only shows if user is logged in and loading is false) ---
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Profile</h1>
-          <p className="text-gray-600">Manage your account information and adoption preferences</p>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50">
+      {/* Header with Gradient */}
+      <div className="bg-gradient-to-r from-[#FF8C42] to-[#FFA726] text-white">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+              <User className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold">My Profile</h1>
+              <p className="text-white/90 mt-1">Manage your account and preferences</p>
+            </div>
+          </div>
         </div>
+      </div>
 
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Success/Error Message */}
         {message.text && (
-          <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
+          <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 shadow-sm ${
             message.type === 'success' 
-              ? 'bg-green-50 border border-green-200' 
-              : 'bg-red-50 border border-red-200'
+              ? 'bg-green-50 border-2 border-green-200' 
+              : 'bg-red-50 border-2 border-red-200'
           }`}>
             <CheckCircle className={`w-5 h-5 ${
               message.type === 'success' ? 'text-green-600' : 'text-red-600'
@@ -168,61 +165,69 @@ export default function ProfilePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Personal Information */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white rounded-2xl shadow-lg border-2 border-orange-100 p-8">
             <div className="flex items-center gap-3 mb-6">
-              <User className="w-6 h-6 text-indigo-600" />
-              <h2 className="text-xl font-bold text-gray-900">Personal Information</h2>
+              <div className="p-3 bg-orange-100 rounded-xl">
+                <User className="w-6 h-6 text-[#FF8C42]" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Personal Info</h2>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Full Name
                 </label>
                 <input
                   type="text"
                   value={profile.fullName}
                   onChange={(e) => setProfile(prev => ({ ...prev, fullName: e.target.value }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
+                  placeholder="Your full name"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Email Address
                 </label>
-                <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg">
-                  <Mail className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-700">{profile.email}</span>
+                <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl">
+                  <Mail className="w-5 h-5 text-gray-400" />
+                  <span className="text-gray-700 font-medium">{profile.email}</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                <p className="text-xs text-gray-500 mt-2">📧 Email cannot be changed</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Phone Number
                 </label>
-                <input
-                  type="tel"
-                  value={profile.phone}
-                  onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="+60 12-345 6789"
-                />
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="tel"
+                    value={profile.phone}
+                    onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
+                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
+                    placeholder="+60 12-345 6789"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           {/* Address */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-white rounded-2xl shadow-lg border-2 border-orange-100 p-8">
             <div className="flex items-center gap-3 mb-6">
-              <MapPin className="w-6 h-6 text-indigo-600" />
-              <h2 className="text-xl font-bold text-gray-900">Address</h2>
+              <div className="p-3 bg-orange-100 rounded-xl">
+                <MapPin className="w-6 h-6 text-[#FF8C42]" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Address</h2>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Street Address
                 </label>
                 <input
@@ -232,13 +237,14 @@ export default function ProfilePage() {
                     ...prev,
                     address: { ...prev.address, street: e.target.value }
                   }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
+                  placeholder="123 Main Street"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     City
                   </label>
                   <input
@@ -248,12 +254,13 @@ export default function ProfilePage() {
                       ...prev,
                       address: { ...prev.address, city: e.target.value }
                     }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
+                    placeholder="Penang"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     State
                   </label>
                   <input
@@ -263,13 +270,14 @@ export default function ProfilePage() {
                       ...prev,
                       address: { ...prev.address, state: e.target.value }
                     }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
+                    placeholder="Pulau Pinang"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Postal Code
                 </label>
                 <input
@@ -279,7 +287,8 @@ export default function ProfilePage() {
                     ...prev,
                     address: { ...prev.address, postalCode: e.target.value }
                   }))}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
+                  placeholder="10100"
                 />
               </div>
             </div>
@@ -287,15 +296,17 @@ export default function ProfilePage() {
         </div>
 
         {/* Adoption Preferences */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mt-6">
+        <div className="bg-white rounded-2xl shadow-lg border-2 border-orange-100 p-8 mt-6">
           <div className="flex items-center gap-3 mb-6">
-            <Dog className="w-6 h-6 text-indigo-600" />
-            <h2 className="text-xl font-bold text-gray-900">Adoption Preferences</h2>
+            <div className="p-3 bg-orange-100 rounded-xl">
+              <Dog className="w-6 h-6 text-[#FF8C42]" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">Adoption Preferences</h2>
           </div>
 
           {/* Preferred Size */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
               Preferred Pet Size
             </label>
             <div className="flex flex-wrap gap-3">
@@ -303,10 +314,10 @@ export default function ProfilePage() {
                 <button
                   key={size}
                   onClick={() => toggleArrayPreference('preferredSize', size)}
-                  className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                  className={`px-6 py-3 rounded-xl border-2 font-medium transition-all ${
                     preferences.preferredSize.includes(size)
-                      ? 'bg-indigo-600 border-indigo-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-indigo-400'
+                      ? 'bg-gradient-to-r from-[#FF8C42] to-[#FFA726] border-[#FF8C42] text-white shadow-lg'
+                      : 'bg-white border-gray-300 text-gray-700 hover:border-[#FF8C42]'
                   }`}
                 >
                   {size}
@@ -315,9 +326,31 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Preferred Age */}
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Preferred Age
+            </label>
+            <div className="flex flex-wrap gap-3">
+              {['Puppy', 'Young', 'Adult', 'Senior'].map(age => (
+                <button
+                  key={age}
+                  onClick={() => toggleArrayPreference('preferredAge', age)}
+                  className={`px-6 py-3 rounded-xl border-2 font-medium transition-all ${
+                    preferences.preferredAge.includes(age)
+                      ? 'bg-gradient-to-r from-[#FF8C42] to-[#FFA726] border-[#FF8C42] text-white shadow-lg'
+                      : 'bg-white border-gray-300 text-gray-700 hover:border-[#FF8C42]'
+                  }`}
+                >
+                  {age}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Preferred Temperament */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
               Preferred Temperament
             </label>
             <div className="flex flex-wrap gap-3">
@@ -325,10 +358,10 @@ export default function ProfilePage() {
                 <button
                   key={temp}
                   onClick={() => toggleArrayPreference('preferredTemperament', temp)}
-                  className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                  className={`px-6 py-3 rounded-xl border-2 font-medium transition-all ${
                     preferences.preferredTemperament.includes(temp)
-                      ? 'bg-purple-600 border-purple-600 text-white'
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-purple-400'
+                      ? 'bg-gradient-to-r from-[#FF8C42] to-[#FFA726] border-[#FF8C42] text-white shadow-lg'
+                      : 'bg-white border-gray-300 text-gray-700 hover:border-[#FF8C42]'
                   }`}
                 >
                   {temp}
@@ -339,16 +372,16 @@ export default function ProfilePage() {
 
           {/* Living Situation */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
               Living Situation
             </label>
             <div className="space-y-3">
               {[
-                { key: 'hasGarden', label: 'I have a garden/yard' },
-                { key: 'hasOtherPets', label: 'I have other pets' },
-                { key: 'hasChildren', label: 'I have children at home' }
+                { key: 'hasGarden', label: '🏡 I have a garden/yard' },
+                { key: 'hasOtherPets', label: '🐾 I have other pets' },
+                { key: 'hasChildren', label: '👶 I have children at home' }
               ].map(item => (
-                <label key={item.key} className="flex items-center gap-3 cursor-pointer">
+                <label key={item.key} className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-orange-50 transition-colors">
                   <input
                     type="checkbox"
                     checked={preferences[item.key]}
@@ -356,9 +389,9 @@ export default function ProfilePage() {
                       ...prev,
                       [item.key]: e.target.checked
                     }))}
-                    className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                    className="w-5 h-5 text-[#FF8C42] border-2 border-gray-300 rounded focus:ring-2 focus:ring-[#FF8C42]"
                   />
-                  <span className="text-gray-700">{item.label}</span>
+                  <span className="text-gray-700 font-medium">{item.label}</span>
                 </label>
               ))}
             </div>
@@ -366,7 +399,7 @@ export default function ProfilePage() {
 
           {/* Experience Level */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
               Pet Ownership Experience
             </label>
             <select
@@ -375,7 +408,7 @@ export default function ProfilePage() {
                 ...prev,
                 experienceLevel: e.target.value
               }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all font-medium"
             >
               <option value="First-time">First-time owner</option>
               <option value="Some Experience">Some experience</option>
@@ -385,26 +418,26 @@ export default function ProfilePage() {
         </div>
 
         {/* Save Button */}
-        <div className="mt-6">
+        <div className="mt-8">
           <button
             onClick={handleSaveProfile}
             disabled={saving}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-3"
+            className="w-full bg-gradient-to-r from-[#FF8C42] to-[#FFA726] hover:from-[#e67e3b] hover:to-[#f59e0b] disabled:opacity-50 text-white font-bold py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
             {saving ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Saving Changes...
               </>
             ) : (
               <>
-                <Save className="w-5 h-5" />
+                <Save className="w-6 h-6" />
                 Save Profile
               </>
             )}
           </button>
-        </div>
       </div>
+        </div>
     </div>
   );
 }

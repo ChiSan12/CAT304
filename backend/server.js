@@ -16,6 +16,9 @@ const adopterRoutes = require('./routes/adopters');
 // Use Routes
 app.use('/api/adopters', adopterRoutes);
 
+const shelterRoutes = require('./routes/shelters');
+app.use('/api/shelters', shelterRoutes);
+
 // Initialize the Google GenAI client with the API key from environment variables
 const ai = new GoogleGenAI({ key: process.env.GEMINI_API_KEY });
 

@@ -1,149 +1,213 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Mail, Lock, Heart, AlertCircle } from 'lucide-react';
 
 /**
- * Login Page Component
- * Handles user authentication via email and password.
- * * Props:
- * - onLoginSuccess: Callback function to execute after successful login (usually redirects to Home).
- * - onSwitchToRegister: Callback function to switch the view to the Registration page.
+ * 改进的登录页面 - 品牌橙色主题
+ * 添加了视觉吸引力和更好的用户体验
  */
 const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
-  const [email, setEmail] = useState(''); // Reverted back to email
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth(); // Access login function from AuthContext
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
 
-  // Handle form submission
   const handleSubmit = async (e) => { 
     e.preventDefault();
+    setError('');
     
-    // Basic validation
     if (!email || !password) {
-      alert("Please enter both email and password");
+      setError("Please enter both email and password");
       return;
     }
 
+    setLoading(true);
+
     try {
-      // 1. Call the backend API
       const response = await fetch('http://localhost:5000/api/adopters/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }), // Sending email
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        // 2. Success Scenario
-        alert("Login successful! Welcome back! 🎉");
-        
-        // 3. Merge adopter details with ID for easier access
-        // Structure: { adopter: {...}, adopterId: "..." }
         const userData = { ...data.adopter, id: data.adopterId };
-        
-        // 4. Update Global Auth State
         login(userData); 
-        
-        // 5. Navigate to Home Page
         onLoginSuccess(); 
       } else {
-        // Failure Scenario (e.g., Wrong password, User not found)
-        alert(data.message || "Login failed");
+        setError(data.message || "Login failed. Please check your credentials.");
       }
     } catch (error) {
       console.error("Login Error:", error);
-      alert("Network error. Is the backend server running?");
-    }
-  };
-
-  // Inline styles for the component
-  const styles = {
-    container: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      height: '60vh',
-      textAlign: 'center',
-    },
-    form: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '15px',
-      width: '300px',
-      padding: '30px',
-      border: '1px solid #ddd',
-      borderRadius: '15px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-      backgroundColor: 'white'
-    },
-    input: {
-      padding: '12px',
-      borderRadius: '8px',
-      border: '1px solid #ccc',
-      fontSize: '16px'
-    },
-    button: {
-      padding: '12px',
-      backgroundColor: '#ff914d', // Brand Orange
-      color: 'white',
-      border: 'none',
-      borderRadius: '8px',
-      cursor: 'pointer',
-      fontWeight: 'bold',
-      fontSize: '16px',
-      marginTop: '10px'
-    },
-    footerText: {
-      marginTop: '15px',
-      fontSize: '14px',
-      color: '#666'
-    },
-    link: {
-      color: '#ff914d',
-      fontWeight: 'bold',
-      cursor: 'pointer',
-      marginLeft: '5px',
-      textDecoration: 'underline'
+      setError("Network error. Please check if the server is running.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={styles.container}>
-      <h2 style={{color: '#ff914d', marginBottom: '20px'}}>Sign In</h2>
-      
-      <form onSubmit={handleSubmit} style={styles.form}>
-        {/* Email Input */}
-        <input 
-          type="email" 
-          placeholder="Email Address" 
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={styles.input}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-0 bg-white rounded-3xl shadow-2xl overflow-hidden">
         
-        {/* Password Input */}
-        <input 
-          type="password" 
-          placeholder="Password" 
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={styles.input}
-        />
-        
-        <button type="submit" style={styles.button}>Login</button>
-
-        {/* Register Link */}
-        <div style={styles.footerText}>
-          Don't have an account? 
-          <span 
-            style={styles.link} 
-            onClick={onSwitchToRegister} // Switch to Registration Page
-          >
-            Sign Up
-          </span>
+        {/* 左侧 - 视觉展示区 */}
+        <div className="hidden lg:flex flex-col justify-center items-center bg-gradient-to-br from-[#FF8C42] to-[#FFA726] p-12 text-white relative overflow-hidden">
+          {/* 装饰性背景图案 */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
+          
+          <div className="relative z-10 text-center">
+            <div className="mb-8">
+              <Heart className="w-24 h-24 mx-auto mb-4 animate-pulse" />
+            </div>
+            
+            <h2 className="text-4xl font-bold mb-4">
+              Welcome Back!
+            </h2>
+            
+            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+              Continue your journey to find your perfect companion
+            </p>
+            
+            <div className="space-y-4 text-left bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                  <span className="text-xl">🐾</span>
+                </div>
+                <span className="text-white/90">Browse available pets</span>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                  <span className="text-xl">🤖</span>
+                </div>
+                <span className="text-white/90">Get AI-powered matches</span>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                  <span className="text-xl">💝</span>
+                </div>
+                <span className="text-white/90">Track your adoption journey</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </form>
+
+        {/* 右侧 - 登录表单 */}
+        <div className="p-12 flex flex-col justify-center">
+          <div className="max-w-md w-full mx-auto">
+            {/* Logo for mobile */}
+            <div className="lg:hidden text-center mb-8">
+              <Heart className="w-16 h-16 mx-auto text-[#FF8C42] mb-4" />
+            </div>
+
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Sign In
+            </h1>
+            <p className="text-gray-600 mb-8">
+              Enter your credentials to access your account
+            </p>
+
+            {/* Error Alert */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Email Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input 
+                    type="email" 
+                    placeholder="your@email.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-transparent transition-all"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+              
+              {/* Password Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input 
+                    type="password" 
+                    placeholder="Enter your password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-transparent transition-all"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              {/* Forgot Password */}
+              <div className="flex items-center justify-end">
+                <button 
+                  type="button"
+                  className="text-sm text-[#FF8C42] hover:text-[#e67e3b] font-medium"
+                >
+                  Forgot password?
+                </button>
+              </div>
+              
+              {/* Submit Button */}
+              <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-[#FF8C42] to-[#FFA726] hover:from-[#e67e3b] hover:to-[#f59e0b] text-white font-semibold py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <Heart className="w-5 h-5" />
+                    Sign In
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Register Link */}
+            <div className="mt-8 text-center">
+              <p className="text-gray-600">
+                Don't have an account?{' '}
+                <button 
+                  onClick={onSwitchToRegister}
+                  className="text-[#FF8C42] hover:text-[#e67e3b] font-semibold hover:underline"
+                >
+                  Create one now
+                </button>
+              </p>
+            </div>
+
+            {/* Divider */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <p className="text-center text-sm text-gray-500">
+                By signing in, you agree to our Terms of Service and Privacy Policy
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

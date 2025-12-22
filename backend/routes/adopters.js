@@ -1,506 +1,363 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs'); // 需要安装: npm install bcryptjs
 const Adopter = require('../models/adopter');
 const Pet = require('../models/pet');
+const Shelter = require('../models/shelter');
 
-// AUTHENTICATION ROUTES
-
-/**
- * POST /api/adopters/register
- * Register a new adopter account
- * Body: { username, email, password, fullName, phone }
- */
+// ============================================
+// 1. 注册新用户 (Register)
+// ============================================
 router.post('/register', async (req, res) => {
   try {
     const { username, email, password, fullName, phone } = req.body;
 
-    // Validate required fields
-    if (!username || !email || !password) {
-      return res.status(400).json({ 
-        success: false,
-        message: "Username, email, and password are required" 
+    // 检查用户是否已存在
+    const existingUser = await Adopter.findOne({ 
+      $or: [{ email }, { username }] 
+    });
+    
+    if (existingUser) {
+      return res.json({ 
+        success: false, 
+        message: 'Username or email already exists' 
       });
     }
 
-    // Check if email already exists
-    const existingEmail = await Adopter.findOne({ email });
-    if (existingEmail) {
-      return res.status(400).json({ 
-        success: false,
-        message: "Email already registered" 
-      });
-    }
+    // 🔒 加密密码 (重要!)
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Check if username already exists
-    const existingUsername = await Adopter.findOne({ username });
-    if (existingUsername) {
-      return res.status(400).json({ 
-        success: false,
-        message: "Username already taken" 
-      });
-    }
-
-    // Create new adopter
+    // 创建新用户
     const newAdopter = new Adopter({
       username,
       email,
-      password, // TODO: Hash password in production (use bcrypt)
+      password: hashedPassword, // 存储加密后的密码
       fullName,
       phone
     });
 
     await newAdopter.save();
 
-    res.status(201).json({ 
-      success: true,
-      message: "Registration successful! 🎉",
-      adopter: newAdopter.getPublicProfile()
+    res.json({ 
+      success: true, 
+      message: 'Registration successful!' 
     });
-
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Registration Error:', error);
     res.status(500).json({ 
-      success: false,
-      message: "Server error during registration",
-      error: error.message 
+      success: false, 
+      message: 'Server error during registration' 
     });
   }
 });
 
-/**
- * POST /api/adopters/login
- * Login for existing adopter
- * Body: { email, password }
- */
+// ============================================
+// 2. 用户登录 (Login)
+// ============================================
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
-    if (!email || !password) {
-      return res.status(400).json({ 
-        success: false,
-        message: "Email and password are required" 
-      });
-    }
-
-    // Find adopter by email
+    // 查找用户
     const adopter = await Adopter.findOne({ email });
     
     if (!adopter) {
-      return res.status(401).json({ 
-        success: false,
-        message: "Invalid email or password" 
+      return res.json({ 
+        success: false, 
+        message: 'User not found' 
       });
     }
 
-    // Check password (in production, use bcrypt.compare)
-    if (adopter.password !== password) {
-      return res.status(401).json({ 
-        success: false,
-        message: "Invalid email or password" 
+    // 🔒 验证密码
+    const isPasswordValid = await bcrypt.compare(password, adopter.password);
+    
+    if (!isPasswordValid) {
+      return res.json({ 
+        success: false, 
+        message: 'Invalid password' 
       });
     }
 
-    // Check if account is active
-    if (!adopter.isActive) {
-      return res.status(403).json({ 
-        success: false,
-        message: "Account has been deactivated" 
-      });
-    }
+    // 返回用户信息 (不包含密码)
+    const adopterData = {
+      id: adopter._id,
+      username: adopter.username,
+      email: adopter.email,
+      fullName: adopter.fullName,
+      phone: adopter.phone,
+      preferences: adopter.preferences
+    };
 
     res.json({ 
-      success: true,
-      message: "Login successful! ✅",
-      adopter: adopter.getPublicProfile(),
-      adopterId: adopter._id
+      success: true, 
+      message: 'Login successful',
+      adopter: adopterData,
+      adopterId: adopter._id 
     });
-
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login Error:', error);
     res.status(500).json({ 
-      success: false,
-      message: "Server error during login",
-      error: error.message 
+      success: false, 
+      message: 'Server error during login' 
     });
   }
 });
 
-// PROFILE MANAGEMENT ROUTES
+// ============================================
+// 3. 获取所有可领养的宠物 (Browse Pets)
+// ============================================
+router.get('/pets/all', async (req, res) => {
+  try {
+    const pets = await Pet.find({ adoptionStatus: 'Available' })
+      .populate('shelterId', 'name location phone email') // 填充 shelter 信息
+      .sort({ createdAt: -1 }); // 最新的在前
 
-/**
- * GET /api/adopters/:id
- * Get adopter profile by ID
- */
+    res.json({ 
+      success: true, 
+      pets 
+    });
+  } catch (error) {
+    console.error('Fetch Pets Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch pets' 
+    });
+  }
+});
+
+// ============================================
+// 4. AI 智能匹配宠物 (AI Matching)
+// ============================================
+router.post('/pets/match', async (req, res) => {
+  try {
+    const { adopterId } = req.body;
+
+    // 获取用户偏好
+    const adopter = await Adopter.findById(adopterId);
+    if (!adopter) {
+      return res.json({ success: false, message: 'Adopter not found' });
+    }
+
+    const prefs = adopter.preferences;
+
+    // 获取所有可领养的宠物
+    const allPets = await Pet.find({ adoptionStatus: 'Available' })
+      .populate('shelterId', 'name location phone email');
+
+    // 🤖 计算匹配分数
+    const petsWithScores = allPets.map(pet => {
+      let score = 0;
+      let maxScore = 0;
+
+      // 1. 大小匹配 (30分)
+      maxScore += 30;
+      if (prefs.preferredSize.includes(pet.size)) {
+        score += 30;
+      }
+
+      // 2. 性格匹配 (40分)
+      maxScore += 40;
+      const matchingTemperaments = pet.labels.temperament.filter(t => 
+        prefs.preferredTemperament.includes(t)
+      );
+      score += (matchingTemperaments.length / Math.max(prefs.preferredTemperament.length, 1)) * 40;
+
+      // 3. 生活环境匹配 (30分)
+      maxScore += 30;
+      
+      // 如果宠物适合儿童且用户有儿童 (+10分)
+      if (prefs.hasChildren && pet.labels.goodWith.includes('Children')) {
+        score += 10;
+      }
+      
+      // 如果宠物适合其他宠物且用户有宠物 (+10分)
+      if (prefs.hasOtherPets && pet.labels.goodWith.includes('Other Dogs')) {
+        score += 10;
+      }
+
+      // 大型犬需要花园 (+10分)
+      if (pet.size === 'Large' && prefs.hasGarden) {
+        score += 10;
+      }
+
+      // 计算百分比
+      const compatibilityScore = Math.round((score / maxScore) * 100);
+
+      return {
+        ...pet.toObject(),
+        compatibilityScore
+      };
+    });
+
+    // 按分数降序排列
+    petsWithScores.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+
+    res.json({ 
+      success: true, 
+      pets: petsWithScores 
+    });
+  } catch (error) {
+    console.error('AI Matching Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'AI matching failed' 
+    });
+  }
+});
+
+// ============================================
+// 5. 提交领养申请 (Submit Adoption Request)
+// ============================================
+router.post('/:adopterId/request', async (req, res) => {
+  try {
+    const { adopterId } = req.params;
+    const { petId } = req.body;
+
+    // 检查是否已经提交过
+    const adopter = await Adopter.findById(adopterId);
+    const existingRequest = adopter.adoptionRequests.find(
+      req => req.petId.toString() === petId && req.status === 'Pending'
+    );
+
+    if (existingRequest) {
+      return res.json({ 
+        success: false, 
+        message: 'You have already submitted a request for this pet' 
+      });
+    }
+
+    // 添加新请求
+    adopter.adoptionRequests.push({
+      petId,
+      status: 'Pending',
+      requestDate: new Date()
+    });
+
+    await adopter.save();
+
+    res.json({ 
+      success: true, 
+      message: 'Adoption request submitted!' 
+    });
+  } catch (error) {
+    console.error('Submit Request Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to submit request' 
+    });
+  }
+});
+
+// ============================================
+// 6. 取消领养申请 (Cancel Request)
+// ============================================
+router.delete('/:adopterId/request/:petId', async (req, res) => {
+  try {
+    const { adopterId, petId } = req.params;
+
+    const adopter = await Adopter.findById(adopterId);
+    
+    // 移除请求
+    adopter.adoptionRequests = adopter.adoptionRequests.filter(
+      req => req.petId.toString() !== petId
+    );
+
+    await adopter.save();
+
+    res.json({ 
+      success: true, 
+      message: 'Request cancelled' 
+    });
+  } catch (error) {
+    console.error('Cancel Request Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to cancel request' 
+    });
+  }
+});
+
+// ============================================
+// 7. 获取用户的所有请求 (My Requests)
+// ============================================
+router.get('/:adopterId/requests', async (req, res) => {
+  try {
+    const { adopterId } = req.params;
+
+    const adopter = await Adopter.findById(adopterId)
+      .populate('adoptionRequests.petId'); // 填充宠物信息
+
+    res.json({ 
+      success: true, 
+      requests: adopter.adoptionRequests 
+    });
+  } catch (error) {
+    console.error('Fetch Requests Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch requests' 
+    });
+  }
+});
+
+// ============================================
+// 8. 获取用户资料 (Profile)
+// ============================================
 router.get('/:id', async (req, res) => {
   try {
     const adopter = await Adopter.findById(req.params.id)
-      .populate('adoptionRequests.petId')
-      .populate('adoptedPets.petId');
+      .populate('adoptedPets.petId') // 填充已领养的宠物
+      .populate('adoptionRequests.petId'); // 填充申请中的宠物
 
     if (!adopter) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Adopter not found" 
-      });
+      return res.json({ success: false, message: 'Adopter not found' });
     }
 
     res.json({ 
-      success: true,
-      adopter: adopter.getPublicProfile(),
-      adoptionRequests: adopter.adoptionRequests,
-      adoptedPets: adopter.adoptedPets
+      success: true, 
+      adopter: adopter,
+      adoptedPets: adopter.adoptedPets,
+      adoptionRequests: adopter.adoptionRequests
     });
-
   } catch (error) {
-    console.error('Get profile error:', error);
+    console.error('Fetch Profile Error:', error);
     res.status(500).json({ 
-      success: false,
-      message: "Error retrieving profile",
-      error: error.message 
+      success: false, 
+      message: 'Failed to fetch profile' 
     });
   }
 });
 
-/**
- * PUT /api/adopters/:id
- * Update adopter profile
- * Body: { fullName, phone, address, preferences }
- */
+// ============================================
+// 9. 更新用户资料 (Update Profile)
+// ============================================
 router.put('/:id', async (req, res) => {
   try {
     const { fullName, phone, address, preferences } = req.body;
 
     const updatedAdopter = await Adopter.findByIdAndUpdate(
       req.params.id,
-      { 
-        fullName, 
-        phone, 
-        address, 
+      {
+        fullName,
+        phone,
+        address,
         preferences,
-        updatedAt: Date.now()
+        updatedAt: new Date()
       },
-      { new: true, runValidators: true }
+      { new: true } // 返回更新后的文档
     );
-
-    if (!updatedAdopter) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Adopter not found" 
-      });
-    }
-
-    res.json({ 
-      success: true,
-      message: "Profile updated successfully ✅",
-      adopter: updatedAdopter.getPublicProfile()
-    });
-
-  } catch (error) {
-    console.error('Update profile error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: "Error updating profile",
-      error: error.message 
-    });
-  }
-});
-
-// PET BROWSING & SEARCH ROUTES
-
-/**
- * GET /api/adopters/pets/all
- * Get all available pets for browsing
- * Query params: ?species=Dog&size=Medium&temperament=Friendly
- */
-router.get('/pets/all', async (req, res) => {
-  try {
-    const { species, size, temperament, age } = req.query;
-    
-    // Build filter object
-    let filter = { adoptionStatus: 'Available' };
-    
-    if (species) filter.species = species;
-    if (size) filter.size = size;
-    if (temperament) filter['labels.temperament'] = temperament;
-    if (age) filter['labels.ageGroup'] = age;
-
-    const pets = await Pet.find(filter)
-      .populate('shelterId', 'name location')
-      .sort({ createdAt: -1 });
-
-    res.json({ 
-      success: true,
-      count: pets.length,
-      pets 
-    });
-
-  } catch (error) {
-    console.error('Get pets error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: "Error retrieving pets",
-      error: error.message 
-    });
-  }
-});
-
-/**
- * GET /api/adopters/pets/:petId
- * Get detailed information about a specific pet
- */
-router.get('/pets/:petId', async (req, res) => {
-  try {
-    const pet = await Pet.findById(req.params.petId)
-      .populate('shelterId', 'name email phone location');
-
-    if (!pet) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Pet not found" 
-      });
-    }
-
-    res.json({ 
-      success: true,
-      pet 
-    });
-
-  } catch (error) {
-    console.error('Get pet details error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: "Error retrieving pet details",
-      error: error.message 
-    });
-  }
-});
-
-/**
- * POST /api/adopters/pets/match
- * Get AI-matched pets based on adopter preferences
- * Body: { adopterId }
- */
-router.post('/pets/match', async (req, res) => {
-  try {
-    const { adopterId } = req.body;
-
-    // Get adopter preferences
-    const adopter = await Adopter.findById(adopterId);
-    if (!adopter) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Adopter not found" 
-      });
-    }
-
-    // Get all available pets
-    const availablePets = await Pet.find({ adoptionStatus: 'Available' })
-      .populate('shelterId', 'name location');
-
-    // Calculate compatibility scores
-    const petsWithScores = availablePets.map(pet => {
-      let score = 0;
-      const prefs = adopter.preferences;
-
-      // Match size preference
-      if (prefs.preferredSize.includes(pet.size)) {
-        score += 25;
-      }
-
-      // Match temperament
-      const matchingTemperaments = pet.labels.temperament.filter(t => 
-        prefs.preferredTemperament.includes(t)
-      );
-      score += matchingTemperaments.length * 15;
-
-      // Living situation compatibility
-      if (prefs.hasChildren && pet.labels.goodWith.includes('Children')) {
-        score += 15;
-      }
-      if (prefs.hasOtherPets && pet.labels.goodWith.includes('Other Dogs')) {
-        score += 15;
-      }
-      if (prefs.hasGarden && pet.labels.temperament.includes('Energetic')) {
-        score += 10;
-      }
-
-      // Experience level
-      if (prefs.experienceLevel === 'First-time' && 
-          pet.labels.trainingStatus === 'Well Trained') {
-        score += 10;
-      }
-
-      return {
-        ...pet.toObject(),
-        compatibilityScore: Math.min(score, 100) // Cap at 100%
-      };
-    });
-
-    // Sort by compatibility score (highest first)
-    petsWithScores.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
-
-    res.json({ 
-      success: true,
-      message: "AI matching completed ✅",
-      count: petsWithScores.length,
-      pets: petsWithScores
-    });
-
-  } catch (error) {
-    console.error('Pet matching error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: "Error during pet matching",
-      error: error.message 
-    });
-  }
-});
-
-
-// ADOPTION REQUEST ROUTES
-
-/**
- * POST /api/adopters/:adopterId/request
- * Submit adoption request for a pet
- * Body: { petId }
- */
-router.post('/:adopterId/request', async (req, res) => {
-  try {
-    const { adopterId } = req.params;
-    const { petId } = req.body;
-
-    // Verify adopter exists
-    const adopter = await Adopter.findById(adopterId);
-    if (!adopter) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Adopter not found" 
-      });
-    }
-
-    // Verify pet exists and is available
-    const pet = await Pet.findById(petId);
-    if (!pet) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Pet not found" 
-      });
-    }
-
-    if (pet.adoptionStatus !== 'Available') {
-      return res.status(400).json({ 
-        success: false,
-        message: "This pet is no longer available for adoption" 
-      });
-    }
-
-    // Check if already requested
-    const existingRequest = adopter.adoptionRequests.find(
-      req => req.petId.toString() === petId && req.status === 'Pending'
-    );
-
-    if (existingRequest) {
-      return res.status(400).json({ 
-        success: false,
-        message: "You have already requested to adopt this pet" 
-      });
-    }
-
-    // Add request to adopter's history
-    adopter.adoptionRequests.push({
-      petId: petId,
-      status: 'Pending',
-      requestDate: Date.now()
-    });
-
-    await adopter.save();
-
-    res.status(201).json({ 
-      success: true,
-      message: "Adoption request submitted successfully! 📝",
-      request: adopter.adoptionRequests[adopter.adoptionRequests.length - 1]
-    });
-
-  } catch (error) {
-    console.error('Adoption request error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: "Error submitting adoption request",
-      error: error.message 
-    });
-  }
-});
-
-/**
- * GET /api/adopters/:adopterId/requests
- * Get all adoption requests for an adopter
- */
-router.get('/:adopterId/requests', async (req, res) => {
-  try {
-    const adopter = await Adopter.findById(req.params.adopterId)
-      .populate({
-        path: 'adoptionRequests.petId',
-        populate: { path: 'shelterId', select: 'name email phone' }
-      });
-
-    if (!adopter) {
-      return res.status(404).json({ 
-        success: false,
-        message: "Adopter not found" 
-      });
-    }
-
-    res.json({ 
-      success: true,
-      requests: adopter.adoptionRequests
-    });
-
-  } catch (error) {
-    console.error('Get requests error:', error);
-    res.status(500).json({ 
-      success: false,
-      message: "Error retrieving requests",
-      error: error.message 
-    });
-  }
-});
-
-/**
- * DELETE /api/adopters/:adopterId/request/:petId
- * Cancel an existing adoption request
- */
-router.delete('/:adopterId/request/:petId', async (req, res) => {
-  try {
-    const { adopterId, petId } = req.params;
-
-    const adopter = await Adopter.findById(adopterId);
-    if (!adopter) {
-      return res.status(404).json({ success: false, message: "Adopter not found" });
-    }
-
-    // 找到并移除那个 request
-    // 我们用 filter 把不等于这个 petId 的留下来，等于的就被删掉了
-    const initialLength = adopter.adoptionRequests.length;
-    adopter.adoptionRequests = adopter.adoptionRequests.filter(
-      req => req.petId.toString() !== petId
-    );
-
-    if (adopter.adoptionRequests.length === initialLength) {
-        return res.status(400).json({ success: false, message: "Request not found" });
-    }
-
-    await adopter.save();
 
     res.json({ 
       success: true, 
-      message: "Request cancelled successfully" 
+      message: 'Profile updated successfully',
+      adopter: updatedAdopter 
     });
-
   } catch (error) {
-    console.error('Cancel request error:', error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error('Update Profile Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to update profile' 
+    });
   }
 });
 
