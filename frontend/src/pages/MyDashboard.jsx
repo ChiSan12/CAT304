@@ -10,10 +10,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-/**
- * Dashboard - 数据中心和活动监控
- * 功能：查看统计、管理申请、追踪领养进度
- */
 export default function MyDashboard() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);

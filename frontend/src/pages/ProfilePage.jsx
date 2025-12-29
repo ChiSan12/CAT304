@@ -63,13 +63,22 @@ export default function ProfilePage() {
     setSaving(true);
     setMessage({ type: '', text: '' });
 
+    let finalPhone = '';
+    if (profile.phone.trim()) {
+      const rawPhone = profile.phone.replace(/\D/g, '');
+      const normalizedPhone = rawPhone.startsWith('0') 
+        ? rawPhone.slice(1) 
+        : rawPhone;
+      finalPhone = `+60${normalizedPhone}`;
+    }
+
     try {
       const response = await fetch(`http://localhost:5000/api/adopters/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: profile.fullName,
-          phone: profile.phone,
+          phone: finalPhone,
           address: profile.address,
           preferences: preferences
         })

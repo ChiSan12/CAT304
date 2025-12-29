@@ -1,11 +1,7 @@
 const mongoose = require('mongoose');
 
-/**
- * 改进的 Pet Schema
- * 添加了健康状态、疫苗记录等 Module 4 需要的字段
- */
 const petSchema = new mongoose.Schema({
-  // === 基本信息 ===
+  //Basic Information
   name: { 
     type: String, 
     required: true,
@@ -49,14 +45,14 @@ const petSchema = new mongoose.Schema({
     required: true
   },
 
-  // === 所属 Shelter ===
+  // Associated Shelter
   shelterId: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Shelter',
     required: true
   },
 
-  // === 图片 ===
+  // Images
   images: [{
     url: {
       type: String,
@@ -65,7 +61,7 @@ const petSchema = new mongoose.Schema({
     caption: String
   }],
 
-  // === AI 标签 (用于匹配算法) ===
+  // AI Labels (used for matching algorithms)
   labels: {
     temperament: {
       type: [String],
@@ -79,7 +75,7 @@ const petSchema = new mongoose.Schema({
     }
   },
 
-  // === 健康状态 (Module 4 需要) ===
+  // Health Status
   healthStatus: {
     vaccinated: {
       type: Boolean,
@@ -97,7 +93,7 @@ const petSchema = new mongoose.Schema({
     nextVaccinationDue: Date
   },
 
-  // === 疫苗记录 (Module 4 - Post Adoption) ===
+  // Vaccination History
   vaccinationHistory: [{
     vaccineName: String,
     dateAdministered: Date,
@@ -105,14 +101,14 @@ const petSchema = new mongoose.Schema({
     veterinarian: String
   }],
 
-  // === 领养状态 ===
+  // Adoption Status
   adoptionStatus: { 
     type: String, 
     enum: ['Available', 'Pending', 'Adopted'],
     default: 'Available' 
   },
 
-  // 如果被领养，记录领养者信息
+  // If adopted, store adopter reference
   adoptedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Adopter'
@@ -120,39 +116,35 @@ const petSchema = new mongoose.Schema({
   
   adoptionDate: Date,
 
-  // === 描述 ===
+  // Description 
   description: {
     type: String,
     trim: true,
     maxlength: 1000
   },
 
-  // === 特殊需求 ===
+  // Special Needs 
   specialNeeds: {
     type: String,
     trim: true
   },
 
-  // === 行为备注 (Shelter内部使用) ===
+  // Behaviour Notes (for internal shelter use)
   behaviorNotes: {
     type: String,
     trim: true
   }
 
 }, { 
-  timestamps: true // 自动添加 createdAt 和 updatedAt
+  timestamps: true // Automatically adds createdAt and updatedAt
 });
 
-// ============================================
-// 索引优化 (提升查询速度)
-// ============================================
+// Indexes for performance optimisation
 petSchema.index({ adoptionStatus: 1 });
 petSchema.index({ species: 1, size: 1 });
 petSchema.index({ shelterId: 1 });
 
-// ============================================
-// 虚拟字段：计算宠物的完整年龄
-// ============================================
+// Virtual field: calculate full age string
 petSchema.virtual('fullAge').get(function() {
   const years = this.age.years || 0;
   const months = this.age.months || 0;
@@ -162,9 +154,7 @@ petSchema.virtual('fullAge').get(function() {
   return `${years} years ${months} months old`;
 });
 
-// ============================================
-// 方法：检查是否需要疫苗提醒
-// ============================================
+// Method: check if vaccination reminder is needed
 petSchema.methods.needsVaccinationReminder = function() {
   if (!this.healthStatus.nextVaccinationDue) return false;
   
@@ -172,13 +162,11 @@ petSchema.methods.needsVaccinationReminder = function() {
   const dueDate = new Date(this.healthStatus.nextVaccinationDue);
   const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
   
-  // 如果在 7 天内到期，返回 true
+  // Returns true if vaccination is due within the next 7 days
   return daysUntilDue <= 7 && daysUntilDue >= 0;
 };
 
-// ============================================
-// 方法：获取宠物的简要信息 (用于列表显示)
-// ============================================
+// Method: get pet summary for list views
 petSchema.methods.getSummary = function() {
   return {
     id: this._id,

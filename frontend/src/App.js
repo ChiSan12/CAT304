@@ -53,7 +53,7 @@ function App() {
         </div>
 
         <nav>
-          {/* 🏠 新增 Home 按钮 */}
+          {/* Home button */}
           <button
             className={`nav-button ${isActive('home')}`}
             onClick={() => setCurrentPage('home')}
