@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { Home as HomeIcon } from 'lucide-react'; 
 
@@ -20,6 +20,10 @@ import './styles/PetStyles.css';
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
 
   // Protected navigation
   const goTo = (page) => {

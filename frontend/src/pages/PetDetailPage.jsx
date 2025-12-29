@@ -5,6 +5,10 @@ import { useAuth } from '../context/AuthContext';
 export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
   const { user } = useAuth();
   
+  useEffect(() => {
+  window.scrollTo({ top: 0 });
+  }, []);
+
   // 1. Smart Pet Matching detection (compatible with old and new data)
   const matchScore = pet?.compatibilityScore;
   // If coming from Smart Pet Matching list or has a valid score greater than 0, treat as a smart match

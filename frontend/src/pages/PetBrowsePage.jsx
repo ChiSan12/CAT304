@@ -6,7 +6,12 @@ import PetDetailPage from './PetDetailPage';
 
 export default function PetBrowsePage() {
   const { user } = useAuth();
-  
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // State Management
   const [pets, setPets] = useState([]);
   const [filteredPets, setFilteredPets] = useState([]);
@@ -16,8 +21,11 @@ export default function PetBrowsePage() {
   const [myRequests, setMyRequests] = useState([]); 
 
   const [filters, setFilters] = useState({
-    species: 'All', size: 'All', temperament: 'All'
+  species: 'All',
+  size: 'All',
+  temperament: 'All'
   });
+
 
   // --- Logic: Initial Fetch ---
   useEffect(() => {
@@ -146,7 +154,17 @@ export default function PetBrowsePage() {
     return (
       <PetDetailPage
         pet={selectedPet}
-        onBack={() => setSelectedPet(null)}
+        onBack={() => {
+          setSelectedPet(null);
+
+          
+          setTimeout(() => {
+            window.scrollTo({
+              top: scrollPosition,
+              behavior: 'instant'
+            });
+          });
+        }}
         onRequestSubmitted={() => {
           if (user?.id) fetchMyRequests(user.id);
         }}
@@ -227,7 +245,11 @@ export default function PetBrowsePage() {
                 showScore={showAIMatch}
                 isRequested={myRequests.includes(pet._id)}
                 onToggleRequest={toggleAdoptionStatus}
-                onViewDetails={() => setSelectedPet({ ...pet, _fromAI: showAIMatch })}
+                onViewDetails={() => {
+                  setScrollPosition(window.scrollY);
+                  setSelectedPet({ ...pet, _fromAI: showAIMatch });
+                  window.scrollTo(0, 0)
+                }}
               />
             ))}
           </div>

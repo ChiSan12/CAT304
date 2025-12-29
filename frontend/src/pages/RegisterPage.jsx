@@ -80,6 +80,16 @@ export default function RegisterPage({ onSwitchToLogin }) {
       const normalizedPhone = rawPhone.startsWith('0') 
         ? rawPhone.slice(1) 
         : rawPhone;
+
+
+      if (!/^1\d{8}$/.test(normalizedPhone)) {
+        setErrors(prev => ({
+          ...prev,
+          phone: 'Invalid Malaysian mobile number'
+        }));
+        setLoading(false);
+        return;
+      }
       
       finalPhone = `+60${normalizedPhone}`;
     }
@@ -214,6 +224,12 @@ export default function RegisterPage({ onSwitchToLogin }) {
                     placeholder="Enter your username"
                   />
                 </div>
+
+                {errors.username && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {errors.username}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -231,6 +247,12 @@ export default function RegisterPage({ onSwitchToLogin }) {
                     placeholder="Enter your full name"
                   />
                 </div>
+
+                {errors.fullname && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {errors.fullname}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -248,6 +270,11 @@ export default function RegisterPage({ onSwitchToLogin }) {
                     placeholder="your@email.com"
                   />
                 </div>
+                {errors.email && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -264,12 +291,18 @@ export default function RegisterPage({ onSwitchToLogin }) {
                   <input
                     type="tel"
                     name="phone"
+                    maxLength={10}
                     value={formData.phone}
                     onChange={handleChange}
                     className="flex-1 bg-transparent border-0 pl-3 pr-4 py-2.5 focus:outline-none focus:ring-0 focus:border-0"
                     placeholder="123456789"
                   />
                 </div>
+                {errors.phone && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {errors.phone}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -287,6 +320,11 @@ export default function RegisterPage({ onSwitchToLogin }) {
                     placeholder="Create a password"
                   />
                 </div>
+                {errors.password && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {errors.password}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -304,6 +342,11 @@ export default function RegisterPage({ onSwitchToLogin }) {
                     placeholder="Re-enter password"
                   />
                 </div>
+                {errors.confirmPassword && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {errors.confirmPassword}
+                  </p>
+                )}
               </div>
 
               <button 
