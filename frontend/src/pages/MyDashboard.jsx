@@ -38,8 +38,8 @@ export default function MyDashboard() {
       const data = await res.json();
 
       if (data.success) {
-        const requests = data.adoptionRequests || [];
-        const adopted = data.adoptedPets || [];
+        const requests = data.adopter.adoptionRequests || [];
+        const adopted = data.adopter.adoptedPets || [];
 
         setDashboardData({
           stats: {
@@ -141,7 +141,7 @@ export default function MyDashboard() {
             )}
             
             {activeTab === 'requests' && (
-              <RequestsTab requests={dashboardData.requests} onRefresh={loadDashboard} />
+              <RequestsTab requests={dashboardData.requests} onRefresh={loadDashboard} adopterId={user.id} />
             )}
             
             {activeTab === 'adopted' && (
@@ -263,10 +263,15 @@ function OverviewTab({ data }) {
   );
 }
 
-function RequestsTab({ requests, onRefresh }) {
+function RequestsTab({ requests, onRefresh, adopterId }) {
   const cancelRequest = async (petId) => {
     if (!window.confirm('Cancel this request?')) return;
-    // Implementation here
+
+    await fetch(
+    `http://localhost:5000/api/adopters/${adopterId}/request/${petId}`,
+    { method: 'DELETE' }
+    );
+
     onRefresh();
   };
 
