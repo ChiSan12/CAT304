@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import { Home as HomeIcon } from 'lucide-react'; 
+// Remove these imports:
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -17,11 +21,14 @@ import ChatBot from './components/ChatBot';
 import './styles/HomePage.css';
 import './styles/PetStyles.css';
 
+
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const { user, logout } = useAuth();
 
-  // Protected navigation
+
+
+  // Protected navigation 
   const goTo = (page) => {
     if (
       (page === 'profile' || page === 'dashboard' || page === 'report') &&
