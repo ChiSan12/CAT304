@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
  * This model stores all information related to pet adopters
  * Includes: authentication, profile details, preferences, and adoption history
  */
+
 const adopterSchema = new mongoose.Schema({
   // === Authentication Fields ===
   username: { 
@@ -26,7 +27,6 @@ const adopterSchema = new mongoose.Schema({
     type: String, 
     required: true,
     minlength: 6
-    // Note: In production, use bcrypt to hash passwords before saving
   },
   
   // === Personal Profile Information ===
@@ -36,7 +36,8 @@ const adopterSchema = new mongoose.Schema({
   },
   phone: { 
     type: String,
-    trim: true
+    trim: true,
+    match: [/^\+60\d{9,11}$/, 'Invalid Malaysia phone number format (should be +60XXXXXXXXX)']
   },
   address: {
     street: { type: String },

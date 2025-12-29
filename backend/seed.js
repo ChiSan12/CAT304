@@ -5,34 +5,16 @@ const Pet = require('./models/pet');
 const Shelter = require('./models/shelter');
 
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB Connected... Adding More Pets'))
-  .catch(err => console.log('❌ Connection Error:', err));
-
-/**
- * 🎯 如何添加宠物图片的 3 种方法：
- * 
- * 1. Unsplash (推荐 - 免费高质量图片)
- *    格式: https://images.unsplash.com/photo-[ID]?w=600&q=80
- *    例子: https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&q=80
- * 
- * 2. Imgur (需要上传)
- *    - 去 https://imgur.com/upload
- *    - 上传图片
- *    - 右键 > "Copy image address"
- *    - 粘贴到 url 字段
- * 
- * 3. 本地图片 (Advanced)
- *    - 放在 public/images/ 文件夹
- *    - url: "/images/your-pet.jpg"
- */
+  .then(() => console.log(' MongoDB Connected... Adding More Pets'))
+  .catch(err => console.log(' Connection Error:', err));
 
 const addMorePets = async () => {
   try {
-    // 获取 Shelter (假设已经创建)
+    // Fetch the shelter record
     let shelter = await Shelter.findOne({ email: 'admin@petfoundus.com' });
     
     if (!shelter) {
-      console.log('⚠️  Shelter not found. Creating one...');
+      console.log('  Shelter not found. Creating one...');
       const hashedPassword = await bcrypt.hash('admin123', 10);
       shelter = await Shelter.create({
         name: 'Pet Found Us',
@@ -47,16 +29,14 @@ const addMorePets = async () => {
       });
     }
 
-    console.log(`🏢 Using Shelter: ${shelter.name}`);
+    console.log(` Using Shelter: ${shelter.name}`);
 
-    // ============================================
-    // 🐶 更多狗狗
-    // ============================================
+    //Pets Data
     const newPets = [
       {
         name: "Charlie",
         species: "Dog",
-        breed: "Beagle",
+        breed: "Chow Chow",
         gender: "Male",
         age: { years: 3, months: 6 },
         size: "Medium",
@@ -74,7 +54,7 @@ const addMorePets = async () => {
           medicalConditions: []
         },
         adoptionStatus: "Available",
-        description: "Charlie is a friendly Beagle who loves to play and explore. He's great with kids and gets along well with other dogs. Perfect for an active family!"
+        description: "Charlie is a friendly Chow Chow who loves to play and explore. He's great with kids and gets along well with other dogs. Perfect for an active family!"
       },
       
       {
@@ -104,7 +84,7 @@ const addMorePets = async () => {
       {
         name: "Cooper",
         species: "Dog",
-        breed: "Corgi",
+        breed: "Yorkshire Terrie",
         gender: "Male",
         age: { years: 1, months: 8 },
         size: "Small",
@@ -122,13 +102,13 @@ const addMorePets = async () => {
           medicalConditions: []
         },
         adoptionStatus: "Available",
-        description: "Adorable Corgi with short legs and a big personality! Cooper loves everyone he meets and is perfect for families or seniors looking for a loyal companion."
+        description: "Adorable Yorkshire Terrie with big personality! Cooper loves everyone he meets and is perfect for families or seniors looking for a loyal companion."
       },
 
       {
         name: "Daisy",
         species: "Dog",
-        breed: "Poodle Mix",
+        breed: "Corgi",
         gender: "Female",
         age: { years: 4, months: 0 },
         size: "Small",
@@ -146,13 +126,13 @@ const addMorePets = async () => {
           medicalConditions: []
         },
         adoptionStatus: "Available",
-        description: "Sweet and gentle Poodle mix with hypoallergenic fur. Daisy is perfect for apartment living and loves to cuddle on the couch."
+        description: "Sweet and gentle Corgi. Daisy is perfect for apartment living and loves to cuddle on the couch."
       },
 
       {
         name: "Zeus",
         species: "Dog",
-        breed: "German Shepherd",
+        breed: "Border Collie",
         gender: "Male",
         age: { years: 5, months: 6 },
         size: "Large",
@@ -170,12 +150,10 @@ const addMorePets = async () => {
           medicalConditions: ["Mild arthritis - requires joint supplements"]
         },
         adoptionStatus: "Available",
-        description: "Majestic German Shepherd looking for a peaceful retirement home. Zeus is well-trained and calm, perfect for experienced dog owners."
+        description: "Majestic Border Collie looking for a peaceful retirement home. Zeus is well-trained and calm, perfect for experienced dog owners."
       },
 
-      // ============================================
-      // 🐱 更多猫咪
-      // ============================================
+      //Cats Data
       {
         name: "Oliver",
         species: "Cat",
@@ -297,26 +275,31 @@ const addMorePets = async () => {
       }
     ];
 
-    // 插入新宠物
     const createdPets = await Pet.insertMany(newPets);
     
-    // 更新 Shelter 的 pets 数组
+    // Update the shelter's pets array with newly created pet IDs
     shelter.pets = [...shelter.pets, ...createdPets.map(pet => pet._id)];
     await shelter.save();
 
-    console.log(`\n✅ Successfully added ${createdPets.length} new pets!`);
-    console.log('\n📋 New Pets List:');
+    console.log(`\n Successfully added ${createdPets.length} new pets!`);
+    console.log('\n New Pets List:');
+
+    // Log details of each newly added pet
     createdPets.forEach(pet => {
       console.log(`   - ${pet.name} (${pet.species}, ${pet.breed}, ${pet.size})`);
     });
 
-    console.log(`\n🏢 Total pets in ${shelter.name}: ${shelter.pets.length}`);
+    // Log total number of pets under the shelter
+    console.log(`\n Total pets in ${shelter.name}: ${shelter.pets.length}`);
     
+    // Close database connection after operation
     mongoose.connection.close();
-    console.log('\n🎉 Done! Run your app to see the new pets!');
+    console.log('\n Done! Run your app to see the new pets!');
     
   } catch (error) {
-    console.error('❌ Error adding pets:', error);
+    console.error(' Error adding pets:', error);
+
+    // Ensure database connection is closed on error
     mongoose.connection.close();
   }
 };

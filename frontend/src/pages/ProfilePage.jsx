@@ -38,7 +38,7 @@ export default function ProfilePage() {
           setProfile({
             fullName: data.adopter.fullName || '',
             email: data.adopter.email || '',
-            phone: data.adopter.phone || '',
+            phone: data.adopter.phone?.replace(/^\+60/, '') || '',
             address: data.adopter.address || { street: '', city: '', state: '', postalCode: '' }
           });
           setPreferences(prev => data.adopter.preferences || prev); 
@@ -63,13 +63,33 @@ export default function ProfilePage() {
     setSaving(true);
     setMessage({ type: '', text: '' });
 
+    let finalPhone = '';
+    if (profile.phone.trim()) {
+      const rawPhone = profile.phone.replace(/\D/g, '');
+      const normalizedPhone = rawPhone.startsWith('0') 
+        ? rawPhone.slice(1) 
+        : rawPhone;
+
+    // Malaysian mobile number: must start with 1 and be 9 digits
+    if (!/^1\d{8}$/.test(normalizedPhone)) {
+      setMessage({
+        type: 'error',
+        text: 'Please enter a valid Malaysian mobile number'
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setSaving(false);
+      return;
+    }
+      finalPhone = `+60${normalizedPhone}`;
+    }
+
     try {
       const response = await fetch(`http://localhost:5000/api/adopters/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName: profile.fullName,
-          phone: profile.phone,
+          phone: finalPhone,
           address: profile.address,
           preferences: preferences
         })
@@ -202,14 +222,24 @@ export default function ProfilePage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Phone Number
                 </label>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+
+                <div className="flex items-center w-full border-2 border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-[#FF8C42] focus-within:border-[#FF8C42]">
+                  <Phone className="w-5 h-5 text-gray-400 ml-3 mr-2" />
+
+                  {/* Fixed country code */}
+                  <div className="px-3 py-3 text-gray-700 text-sm font-semibold border-r border-gray-300 bg-gray-50">
+                    +60
+                  </div>
+
                   <input
                     type="tel"
+                    maxLength={10}
                     value={profile.phone}
-                    onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
-                    placeholder="+60 12-345 6789"
+                    onChange={(e) =>
+                      setProfile(prev => ({ ...prev, phone: e.target.value }))
+                    }
+                    className="flex-1 bg-transparent border-0 pl-3 pr-4 py-3 focus:outline-none focus:ring-0"
+                    placeholder="123456789"
                   />
                 </div>
               </div>
@@ -389,7 +419,7 @@ export default function ProfilePage() {
                       ...prev,
                       [item.key]: e.target.checked
                     }))}
-                    className="w-5 h-5 text-[#FF8C42] border-2 border-gray-300 rounded focus:ring-2 focus:ring-[#FF8C42]"
+                    className="w-5 h-5 text-[#FF8C42] border-2 border-gray-300 rounded focus:outline-none focus:ring-0"
                   />
                   <span className="text-gray-700 font-medium">{item.label}</span>
                 </label>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { Home as HomeIcon } from 'lucide-react'; 
 // Remove these imports:
@@ -26,9 +26,11 @@ function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const { user, logout } = useAuth();
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentPage]);
 
-
-  // Protected navigation 
+  // Protected navigation
   const goTo = (page) => {
     if (
       (page === 'profile' || page === 'dashboard' || page === 'report') &&
@@ -60,7 +62,7 @@ function App() {
         </div>
 
         <nav>
-          {/* 🏠 新增 Home 按钮 */}
+          {/* Home button */}
           <button
             className={`nav-button ${isActive('home')}`}
             onClick={() => setCurrentPage('home')}

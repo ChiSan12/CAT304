@@ -5,14 +5,12 @@ const Adopter = require('../models/adopter');
 const Pet = require('../models/pet');
 const Shelter = require('../models/shelter');
 
-// ============================================
-// 1. 注册新用户 (Register)
-// ============================================
+//1. Register New User
 router.post('/register', async (req, res) => {
   try {
     const { username, email, password, fullName, phone } = req.body;
 
-    // 检查用户是否已存在
+    // Check if user already exists (by email or username)
     const existingUser = await Adopter.findOne({ 
       $or: [{ email }, { username }] 
     });
@@ -24,14 +22,14 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // 🔒 加密密码 (重要!)
+    // Hash password before saving 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 创建新用户
+    // Create new adopter account
     const newAdopter = new Adopter({
       username,
       email,
-      password: hashedPassword, // 存储加密后的密码
+      password: hashedPassword, // Store hashed password
       fullName,
       phone
     });
@@ -51,14 +49,12 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// ============================================
-// 2. 用户登录 (Login)
-// ============================================
+//2. User Login
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 查找用户
+    // Find user by email
     const adopter = await Adopter.findOne({ email });
     
     if (!adopter) {
@@ -68,7 +64,7 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // 🔒 验证密码
+    // Validate password
     const isPasswordValid = await bcrypt.compare(password, adopter.password);
     
     if (!isPasswordValid) {
@@ -78,7 +74,7 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // 返回用户信息 (不包含密码)
+    // Prepare user data (exclude password)
     const adopterData = {
       id: adopter._id,
       username: adopter.username,
@@ -103,14 +99,12 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// ============================================
-// 3. 获取所有可领养的宠物 (Browse Pets)
-// ============================================
+// 3. Get All Available Pets (Browse Pets)
 router.get('/pets/all', async (req, res) => {
   try {
     const pets = await Pet.find({ adoptionStatus: 'Available' })
-      .populate('shelterId', 'name location phone email') // 填充 shelter 信息
-      .sort({ createdAt: -1 }); // 最新的在前
+      .populate('shelterId', 'name location phone email') // Populate shelter info
+      .sort({ createdAt: -1 }); // Latest pets first
 
     res.json({ 
       success: true, 
@@ -125,14 +119,12 @@ router.get('/pets/all', async (req, res) => {
   }
 });
 
-// ============================================
-// 4. AI 智能匹配宠物 (AI Matching)
-// ============================================
+// 4. Rule-based Intelligent Pet Matching
 router.post('/pets/match', async (req, res) => {
   try {
     const { adopterId } = req.body;
 
-    // 获取用户偏好
+    // Fetch adopter preferences
     const adopter = await Adopter.findById(adopterId);
     if (!adopter) {
       return res.json({ success: false, message: 'Adopter not found' });
@@ -140,47 +132,47 @@ router.post('/pets/match', async (req, res) => {
 
     const prefs = adopter.preferences;
 
-    // 获取所有可领养的宠物
+    // Fetch all available pets
     const allPets = await Pet.find({ adoptionStatus: 'Available' })
       .populate('shelterId', 'name location phone email');
 
-    // 🤖 计算匹配分数
+    // Calculate compatibility score for each pet
     const petsWithScores = allPets.map(pet => {
       let score = 0;
       let maxScore = 0;
 
-      // 1. 大小匹配 (30分)
+      // 1. Size matching (30 points)
       maxScore += 30;
       if (prefs.preferredSize.includes(pet.size)) {
         score += 30;
       }
 
-      // 2. 性格匹配 (40分)
+      // 2. Temperament matching (40 points)
       maxScore += 40;
       const matchingTemperaments = pet.labels.temperament.filter(t => 
         prefs.preferredTemperament.includes(t)
       );
       score += (matchingTemperaments.length / Math.max(prefs.preferredTemperament.length, 1)) * 40;
 
-      // 3. 生活环境匹配 (30分)
+      // 3. Living environment matching (30 points)
       maxScore += 30;
       
-      // 如果宠物适合儿童且用户有儿童 (+10分)
+      // Suitable for children
       if (prefs.hasChildren && pet.labels.goodWith.includes('Children')) {
         score += 10;
       }
       
-      // 如果宠物适合其他宠物且用户有宠物 (+10分)
+      // Suitable for other pets
       if (prefs.hasOtherPets && pet.labels.goodWith.includes('Other Dogs')) {
         score += 10;
       }
 
-      // 大型犬需要花园 (+10分)
+      // Large pets require garden space
       if (pet.size === 'Large' && prefs.hasGarden) {
         score += 10;
       }
 
-      // 计算百分比
+      // Final compatibility score as percentage
       const compatibilityScore = Math.round((score / maxScore) * 100);
 
       return {
@@ -189,7 +181,7 @@ router.post('/pets/match', async (req, res) => {
       };
     });
 
-    // 按分数降序排列
+    // Sort pets by compatibility score (highest first)
     petsWithScores.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
 
     res.json({ 
@@ -205,15 +197,13 @@ router.post('/pets/match', async (req, res) => {
   }
 });
 
-// ============================================
-// 5. 提交领养申请 (Submit Adoption Request)
-// ============================================
+// 5. Submit Adoption Request
 router.post('/:adopterId/request', async (req, res) => {
   try {
     const { adopterId } = req.params;
     const { petId } = req.body;
 
-    // 检查是否已经提交过
+    // Check if a pending request for the same pet already exists
     const adopter = await Adopter.findById(adopterId);
     const existingRequest = adopter.adoptionRequests.find(
       req => req.petId.toString() === petId && req.status === 'Pending'
@@ -226,7 +216,7 @@ router.post('/:adopterId/request', async (req, res) => {
       });
     }
 
-    // 添加新请求
+    // Add new adoption request
     adopter.adoptionRequests.push({
       petId,
       status: 'Pending',
@@ -248,16 +238,14 @@ router.post('/:adopterId/request', async (req, res) => {
   }
 });
 
-// ============================================
-// 6. 取消领养申请 (Cancel Request)
-// ============================================
+// 6. Cancel Adoption Request
 router.delete('/:adopterId/request/:petId', async (req, res) => {
   try {
     const { adopterId, petId } = req.params;
 
     const adopter = await Adopter.findById(adopterId);
     
-    // 移除请求
+    // Remove the specified adoption request
     adopter.adoptionRequests = adopter.adoptionRequests.filter(
       req => req.petId.toString() !== petId
     );
@@ -277,15 +265,13 @@ router.delete('/:adopterId/request/:petId', async (req, res) => {
   }
 });
 
-// ============================================
-// 7. 获取用户的所有请求 (My Requests)
-// ============================================
+//// 7. Get All Adoption Requests of an Adopter
 router.get('/:adopterId/requests', async (req, res) => {
   try {
     const { adopterId } = req.params;
 
     const adopter = await Adopter.findById(adopterId)
-      .populate('adoptionRequests.petId'); // 填充宠物信息
+      .populate('adoptionRequests.petId'); // Populate pet details
 
     res.json({ 
       success: true, 
@@ -300,14 +286,12 @@ router.get('/:adopterId/requests', async (req, res) => {
   }
 });
 
-// ============================================
-// 8. 获取用户资料 (Profile)
-// ============================================
+// 8. Get Adopter Profile
 router.get('/:id', async (req, res) => {
   try {
     const adopter = await Adopter.findById(req.params.id)
-      .populate('adoptedPets.petId') // 填充已领养的宠物
-      .populate('adoptionRequests.petId'); // 填充申请中的宠物
+      .populate('adoptedPets.petId') // Populate adopted pet details
+      .populate('adoptionRequests.petId'); // Populate requested pet details
 
     if (!adopter) {
       return res.json({ success: false, message: 'Adopter not found' });
@@ -328,9 +312,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ============================================
-// 9. 更新用户资料 (Update Profile)
-// ============================================
+// 9. Update Adopter Profile
 router.put('/:id', async (req, res) => {
   try {
     const { fullName, phone, address, preferences } = req.body;
@@ -344,7 +326,7 @@ router.put('/:id', async (req, res) => {
         preferences,
         updatedAt: new Date()
       },
-      { new: true } // 返回更新后的文档
+      { new: true } // Return the updated document
     );
 
     res.json({ 

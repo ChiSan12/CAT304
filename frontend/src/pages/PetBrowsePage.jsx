@@ -6,7 +6,12 @@ import PetDetailPage from './PetDetailPage';
 
 export default function PetBrowsePage() {
   const { user } = useAuth();
-  
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // State Management
   const [pets, setPets] = useState([]);
   const [filteredPets, setFilteredPets] = useState([]);
@@ -16,8 +21,11 @@ export default function PetBrowsePage() {
   const [myRequests, setMyRequests] = useState([]); 
 
   const [filters, setFilters] = useState({
-    species: 'All', size: 'All', temperament: 'All'
+  species: 'All',
+  size: 'All',
+  temperament: 'All'
   });
+
 
   // --- Logic: Initial Fetch ---
   useEffect(() => {
@@ -146,7 +154,17 @@ export default function PetBrowsePage() {
     return (
       <PetDetailPage
         pet={selectedPet}
-        onBack={() => setSelectedPet(null)}
+        onBack={() => {
+          setSelectedPet(null);
+
+          
+          setTimeout(() => {
+            window.scrollTo({
+              top: scrollPosition,
+              behavior: 'instant'
+            });
+          });
+        }}
         onRequestSubmitted={() => {
           if (user?.id) fetchMyRequests(user.id);
         }}
@@ -161,7 +179,7 @@ export default function PetBrowsePage() {
       <div className="bg-white border-b border-gray-200">
         <div className="content-wrapper">
           <h1 className="text-3xl font-bold text-gray-900">Find Your Perfect Pet</h1>
-          <p className="text-gray-600 mt-2">Browse available pets or use AI matching</p>
+          <p className="text-gray-600 mt-2">Browse available pets or use Smart Pet Matching</p>
         </div>
       </div>
 
@@ -173,7 +191,7 @@ export default function PetBrowsePage() {
               onClick={getAIMatches} 
               className="w-full bg-gradient-to-r from-[#FF8C42] to-[#FFA726] hover:from-[#e67e3b] hover:to-[#f59e0b] text-white font-semibold py-4 rounded-lg flex items-center justify-center gap-3 shadow-lg"
             >
-              <Sparkles className="w-6 h-6" /> Get AI-Powered Recommendations
+              <Sparkles className="w-6 h-6" /> Get Smart Pet Matching Recommendations
             </button>
           </div>
           
@@ -209,7 +227,7 @@ export default function PetBrowsePage() {
         {showAIMatch && (
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 flex items-center gap-3 animate-fade-in">
             <Sparkles className="w-5 h-5 text-[#FF8C42]" />
-            <p className="text-orange-900 font-medium">Showing AI-matched pets</p>
+            <p className="text-orange-900 font-medium">Showing smart-matched pets</p>
           </div>
         )}
 
@@ -227,7 +245,11 @@ export default function PetBrowsePage() {
                 showScore={showAIMatch}
                 isRequested={myRequests.includes(pet._id)}
                 onToggleRequest={toggleAdoptionStatus}
-                onViewDetails={() => setSelectedPet({ ...pet, _fromAI: showAIMatch })}
+                onViewDetails={() => {
+                  setScrollPosition(window.scrollY);
+                  setSelectedPet({ ...pet, _fromAI: showAIMatch });
+                  window.scrollTo(0, 0)
+                }}
               />
             ))}
           </div>

@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, Heart, AlertCircle } from 'lucide-react';
 
-/**
- * 改进的登录页面 - 品牌橙色主题
- * 添加了视觉吸引力和更好的用户体验
- */
+
 const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,10 +10,12 @@ const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
+  // Handle login form submission
   const handleSubmit = async (e) => { 
     e.preventDefault();
     setError('');
     
+    // Basic client-side validation
     if (!email || !password) {
       setError("Please enter both email and password");
       return;
@@ -24,6 +23,7 @@ const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
 
     setLoading(true);
 
+    // Send login request to backend
     try {
       const response = await fetch('http://localhost:5000/api/adopters/login', {
         method: 'POST',
@@ -34,6 +34,7 @@ const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
       const data = await response.json();
 
       if (data.success) {
+        // Save user data to global auth context
         const userData = { ...data.adopter, id: data.adopterId };
         login(userData); 
         onLoginSuccess(); 
@@ -52,9 +53,9 @@ const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-yellow-50 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-0 bg-white rounded-3xl shadow-2xl overflow-hidden">
         
-        {/* 左侧 - 视觉展示区 */}
+        {/* Left section: visual and branding area */}
         <div className="hidden lg:flex flex-col justify-center items-center bg-gradient-to-br from-[#FF8C42] to-[#FFA726] p-12 text-white relative overflow-hidden">
-          {/* 装饰性背景图案 */}
+          {/* Decorative background shapes */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
           
@@ -71,6 +72,7 @@ const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
               Continue your journey to find your perfect companion
             </p>
             
+            {/* Feature highlights */}
             <div className="space-y-4 text-left bg-white/10 backdrop-blur-sm rounded-2xl p-6">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -96,7 +98,7 @@ const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
           </div>
         </div>
 
-        {/* 右侧 - 登录表单 */}
+        {/* Right section: login form */}
         <div className="p-12 flex flex-col justify-center">
           <div className="max-w-md w-full mx-auto">
             {/* Logo for mobile */}

@@ -13,7 +13,7 @@ export default function PetCard({ pet, showScore, isRequested, onToggleRequest, 
 
   return (
     <div className="pet-card">
-      {/* ✅ 这里必须加上 group */}
+      {/* Image section */}
       <div className="pet-card-image-wrapper group">
         <img
           src={pet.images?.[0]?.url || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=400&q=80'}

@@ -5,16 +5,20 @@ import { useAuth } from '../context/AuthContext';
 export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
   const { user } = useAuth();
   
-  // 1. 智能判断 AI 匹配 (兼容旧数据和新数据)
+  useEffect(() => {
+  window.scrollTo({ top: 0 });
+  }, []);
+
+  // 1. Smart Pet Matching detection (compatible with old and new data)
   const matchScore = pet?.compatibilityScore;
-  // 如果是从 AI 列表来的，或者有分数且分数大于0，就认为是 AI 推荐
+  // If coming from Smart Pet Matching list or has a valid score greater than 0, treat as a smart match
   const isAIMatch = pet?._fromAI || (matchScore !== undefined && matchScore > 0);
   
   const [isRequested, setIsRequested] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // 2. 检查用户是否已经申请过这只宠物
+  // 2. Check whether the user has already requested this pet
   useEffect(() => {
     const checkRequestStatus = async () => {
       if (!user?.id) return;
@@ -23,7 +27,7 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
         const data = await res.json();
         
         if (data.success) {
-          // 检查列表中是否有这只宠物的 ID
+          // Check if this pet ID exists in the request list
           const requested = data.requests.some(
             req => (req.petId._id === pet._id) || (req.petId === pet._id)
           );
@@ -37,14 +41,14 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
     checkRequestStatus();
   }, [user, pet]);
 
-  // 3. 处理 申请 / 取消申请
+  // 3. Handle request or cancel request
   const handleToggleRequest = async () => {
     if (!user) {
       alert('Please login to adopt!');
       return;
     }
 
-    // 如果已申请，弹出确认框
+    // Show confirmation dialog when cancelling
     if (isRequested) {
       const confirmCancel = window.confirm("Are you sure you want to cancel your request?");
       if (!confirmCancel) return;
@@ -53,7 +57,7 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
     setLoading(true);
 
     try {
-      // 动态决定 API 路径和方法
+      // Dynamically determine API endpoint and HTTP method
       const url = isRequested 
         ? `http://localhost:5000/api/adopters/${user.id}/request/${pet._id}` // Delete
         : `http://localhost:5000/api/adopters/${user.id}/request`;           // Post
@@ -73,14 +77,14 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
         const newStatus = !isRequested;
         setIsRequested(newStatus);
         
-        // 只有是"申请成功"时才弹窗，"取消"时只刷新
+        // Show modal only when request is successfully submitted
         if (newStatus) {
           setShowConfirmModal(true);
         } else {
           alert("Request cancelled.");
         }
 
-        // 通知上一页刷新数据
+        // Notify parent page to refresh data
         if (onRequestSubmitted) onRequestSubmitted();
       } else {
         alert(data.message || 'Operation failed');
@@ -107,7 +111,7 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
 
       <div className="content-wrapper">
         
-        {/* 🔥 AI Banner (只有匹配时才显示) */}
+        {/* Smart Pet Matching banner (shown only for matched pets) */}
         {isAIMatch && (
           <div className="mb-8 bg-gradient-to-r from-orange-100 to-amber-50 border border-orange-200 rounded-2xl p-6 flex items-start gap-4 shadow-sm animate-fade-in">
             <div className="p-3 bg-white rounded-full shadow-sm text-[#FF8C42] mt-1">
@@ -119,7 +123,7 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
                  {matchScore && <span className="bg-[#FF8C42] text-white text-xs font-bold px-2 py-1 rounded-full">{matchScore}% Compatible</span>}
               </div>
               <p className="text-gray-700">
-                AI suggests <strong>{pet.name}</strong> fits your lifestyle preferences perfectly.
+                Smart Pet Matching suggests that <strong>{pet.name}</strong> is highly compatible with your lifestyle preferences.
               </p>
             </div>
           </div>
@@ -127,7 +131,7 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* === 左侧：图片和信息 === */}
+          {/* Left section: image and details */}
           <div className="lg:col-span-2 space-y-6">
             <img 
               src={pet.images?.[0]?.url || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80'}
@@ -165,13 +169,13 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
             </div>
           </div>
 
-          {/* === 右侧：操作卡片 === */}
+          {/* Right section: action card */}
           <div className="lg:col-span-1">
             <div className="section-card sticky top-24">
               <h3 className="text-2xl font-bold text-gray-900 mb-2">{pet.name}</h3>
               <p className="text-gray-600 mb-6">{pet.breed} • {pet.species}</p>
 
-              {/* Shelter Info - 做了安全检查，如果没有名字显示 Unknown */}
+              {/* Shelter information with safe fallback */}
               <div className="mb-6 p-4 bg-gray-50 rounded-lg flex gap-3">
                 <MapPin className="w-5 h-5 text-[#FF8C42] shrink-0" />
                 <div>
@@ -180,7 +184,7 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
                 </div>
               </div>
 
-              {/* Action Button - 根据状态变色 */}
+              {/* Action button with state-based styling */}
               {pet.adoptionStatus === 'Available' ? (
                  <button 
                     onClick={handleToggleRequest} 
@@ -205,7 +209,7 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
                 </div>
               )}
 
-              {/* Contact Info - 数据为空时显示 Not provided */}
+              {/* Contact information with fallback display */}
               <div className="mt-6 pt-6 border-t border-gray-200 space-y-3 text-sm text-gray-600">
                 <div className="flex gap-3 items-center">
                   <Phone className="w-4 h-4 text-[#FF8C42]"/> 
@@ -222,7 +226,7 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
         </div>
       </div>
       
-      {/* 成功弹窗 */}
+      {/* Success confirmation modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center animate-fade-in">
@@ -239,7 +243,7 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
   );
 }
 
-// === 辅助组件 (保持干净) ===
+// Helper components
 const InfoItem = ({ label, value }) => (
   <div>
     <p className="text-sm text-gray-500 mb-1">{label}</p>
