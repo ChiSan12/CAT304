@@ -221,6 +221,13 @@ router.post('/:adopterId/request', async (req, res) => {
     }
     // Find the adopter
     const adopter = await Adopter.findById(adopterId);
+
+    if (!adopter) {
+      return res.json({
+        success: false,
+        message: 'Adopter not found or account no longer exists.'
+      });
+    }
     
     // Check if the adopter has already submitted a pending request for this pet
     const existingRequest = adopter.adoptionRequests.find(
@@ -262,6 +269,13 @@ router.delete('/:adopterId/request/:petId', async (req, res) => {
     const { adopterId, petId } = req.params;
 
     const adopter = await Adopter.findById(adopterId);
+
+    if (!adopter) {
+      return res.json({
+        success: false,
+        message: 'Adopter not found or account no longer exists.'
+      });
+    }
     
     // Remove the specified adoption request
     adopter.adoptionRequests = adopter.adoptionRequests.filter(
@@ -290,6 +304,13 @@ router.get('/:adopterId/requests', async (req, res) => {
 
     const adopter = await Adopter.findById(adopterId)
       .populate('adoptionRequests.petId'); // Populate pet details
+
+      if (!adopter) {
+      return res.json({
+        success: false,
+        message: 'Adopter not found'
+      });
+    }
 
     res.json({ 
       success: true, 

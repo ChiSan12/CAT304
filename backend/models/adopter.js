@@ -37,7 +37,7 @@ const adopterSchema = new mongoose.Schema({
   phone: { 
     type: String,
     trim: true,
-    match: [/^\+60\d{9,11}$/, 'Invalid Malaysia phone number format (should be +60XXXXXXXXX)']
+    match: [/^\+601\d{8}$/, 'Invalid Malaysia phone number format (should be +60XXXXXXXXX)']
   },
   address: {
     street: { type: String },

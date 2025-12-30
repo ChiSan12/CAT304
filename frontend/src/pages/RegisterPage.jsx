@@ -250,7 +250,7 @@ export default function RegisterPage({ onSwitchToLogin }) {
 
                 {errors.fullname && (
                   <p className="text-xs text-red-600 mt-1">
-                    {errors.fullname}
+                    {errors.fullName}
                   </p>
                 )}
               </div>
