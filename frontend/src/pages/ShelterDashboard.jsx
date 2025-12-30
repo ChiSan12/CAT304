@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Dog, FileText, Settings, Plus, Trash2, Edit, Save, MapPin, Phone } from 'lucide-react';
 import AddPetModal from '../components/AddPetModal';
-import EditPetModal from '../components/EditPetModel';
+import EditPetModal from '../components/EditPetModal';
 import { useAuth } from '../context/AuthContext';
 
 export default function ShelterDashboard() {
