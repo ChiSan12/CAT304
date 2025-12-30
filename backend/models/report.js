@@ -11,6 +11,11 @@ const reportSchema = new mongoose.Schema({
     lng: { type: Number, required: true },
   },
   photoUrl: { type: Buffer }, // optional
-}, { timestamps: true }); // <-- automatically adds createdAt and updatedAt
+  reportedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Adopter',
+    required: true, // ensures we always have an adopter
+  }
+}, { timestamps: true });
 
 module.exports = mongoose.model('Report', reportSchema);
