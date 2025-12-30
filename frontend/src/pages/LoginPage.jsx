@@ -85,7 +85,7 @@ const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                   <span className="text-xl">🤖</span>
                 </div>
-                <span className="text-white/90">Get AI-powered matches</span>
+                <span className="text-white/90">Get Smart Pet Matches</span>
               </div>
               
               <div className="flex items-center gap-3">
