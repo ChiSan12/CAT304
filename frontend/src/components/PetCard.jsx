@@ -21,13 +21,13 @@ export default function PetCard({ pet, showScore, isRequested, onToggleRequest, 
           className="pet-card-image"
         />
         
-        {showScore && pet.compatibilityScore && (
+        {showScore && pet.compatibilityScore>0 && (
           <div className="badge-ai">
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 fill-current" />
               <span className="font-bold">{pet.compatibilityScore}% Match</span>
             </div>
-            <span className="text-[10px] text-white/80">AI Recommended</span>
+            <span className="text-[10px] text-white/80">Smart Match</span>
           </div>
         )}
 
