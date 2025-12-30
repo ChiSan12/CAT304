@@ -177,6 +177,7 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
         if (data.success) {
           alert("Request submitted! 🎉");
           setMyRequests(prev => [...prev, petId]);
+          await fetchPets();
         } else {
           alert(data.message);
         }
