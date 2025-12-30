@@ -137,11 +137,6 @@ const adopterSchema = new mongoose.Schema({
   timestamps: true // Automatically manage createdAt and updatedAt
 });
 
-/**
- * Index for faster queries
- */
-adopterSchema.index({ email: 1 });
-adopterSchema.index({ username: 1 });
 
 /**
  * Method to get adopter's basic info (excluding sensitive data)
