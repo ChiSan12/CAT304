@@ -10,6 +10,7 @@ import PetBrowsePage from './pages/PetBrowsePage';
 import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/MyDashboard';
 import ReportPage from './pages/ReportPage';
+import ShelterDashboard from './pages/ShelterDashboard';
 
 // Components
 import ChatBot from './components/ChatBot';
@@ -57,7 +58,7 @@ function App() {
         </div>
 
         <nav>
-          {/* Home button */}
+          {/* Home button (Everyone) */}
           <button
             className={`nav-button ${isActive('home')}`}
             onClick={() => setCurrentPage('home')}
@@ -67,6 +68,7 @@ function App() {
             Home
           </button>
 
+          {/* Browse & Report (Available to Everyone or just Users) */}
           <button
             className={`nav-button ${isActive('browse')}`}
             onClick={() => goTo('browse')}
@@ -81,23 +83,43 @@ function App() {
             Report Strays
           </button>
 
-          {user && (
+
+          {/* === ROLE BASED BUTTONS === */}
+
+          {/* 1. ADMIN ONLY BUTTON */}
+          {user && user.role === 'shelter' && (
+            <button
+              className={`nav-button ${isActive('shelter-admin')}`}
+              onClick={() => setCurrentPage('shelter-admin')}
+              style={{ color: '#2563EB', fontWeight: 'bold' }}
+            >
+              Shelter Admin
+            </button>
+          )}
+
+          {/* 2. USER ONLY BUTTON */}
+          {user && user.role === 'adopter' && (
             <button
               className={`nav-button ${isActive('dashboard')}`}
               onClick={() => goTo('dashboard')}
             >
-              Dashboard
+              My Dashboard
             </button>
           )}
 
+
+          {/* === AUTH BUTTONS === */}
           {user ? (
             <>
-              <button
-                className={`nav-button ${isActive('profile')}`}
-                onClick={() => goTo('profile')}
-              >
-                Profile
-              </button>
+              {/* Profile - User Only */}
+              {user.role === 'adopter' && (
+                <button
+                  className={`nav-button ${isActive('profile')}`}
+                  onClick={() => goTo('profile')}
+                >
+                  Profile
+                </button>
+              )}
 
               <button
                 className="nav-button"
@@ -135,12 +157,23 @@ function App() {
         {currentPage === 'home' && <HomePage goTo={goTo} />}
         {currentPage === 'browse' && <PetBrowsePage />}
         {currentPage === 'report' && <ReportPage />}
+        
+        {/* Render User Dashboard */}
         {currentPage === 'dashboard' && <DashboardPage />}
+        
+        {/* Render Admin Dashboard */}
+        {currentPage === 'shelter-admin' && <ShelterDashboard />}
+        
         {currentPage === 'profile' && <ProfilePage />}
 
         {currentPage === 'login' && (
           <LoginPage
-            onLoginSuccess={() => setCurrentPage('home')}
+            onLoginSuccess={() => {
+              // Redirect Admin to Shelter Dashboard, User to Home
+              // We can't check 'user' here immediately as state might not be updated yet
+              // so we default to home, and they can click the button
+              setCurrentPage('home');
+            }}
             onSwitchToRegister={() => setCurrentPage('register')}
           />
         )}
