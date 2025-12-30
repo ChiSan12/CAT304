@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs'); // 需要安装: npm install bcryptjs
+const bcrypt = require('bcryptjs'); 
 const Adopter = require('../models/adopter');
 const Pet = require('../models/pet');
 const Shelter = require('../models/shelter');
@@ -265,7 +265,7 @@ router.delete('/:adopterId/request/:petId', async (req, res) => {
   }
 });
 
-//// 7. Get All Adoption Requests of an Adopter
+// 7. Get All Adoption Requests of an Adopter
 router.get('/:adopterId/requests', async (req, res) => {
   try {
     const { adopterId } = req.params;

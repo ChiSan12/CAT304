@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { Home as HomeIcon } from 'lucide-react'; 
-// Remove these imports:
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -23,11 +19,53 @@ import './styles/PetStyles.css';
 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home');
+  // Initialize with saved page or default to 'home'
+  const [currentPage, setCurrentPage] = useState(() => {
+    return sessionStorage.getItem('currentPage') || 'home';
+  });
   const { user, logout } = useAuth();
+  
+  // Track if this is initial mount
+  const isInitialMount = React.useRef(true);
 
+  // Load saved page on mount (for refresh)
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const savedPage = sessionStorage.getItem('currentPage');
+    if (savedPage) {
+      setCurrentPage(savedPage);
+    }
+  }, []);
+
+  // Scroll to top on initial mount/refresh
+  useEffect(() => {
+    // Only scroll on initial mount, and only if not browse page
+    if (currentPage !== 'browse') {
+      const timer = setTimeout(() => {
+        window.scrollTo(0, 0);
+      }, 10);
+      return () => clearTimeout(timer);
+    }
+  }, []); // Empty dependency - only runs once on mount
+
+  // Save current page when it changes
+  useEffect(() => {
+    sessionStorage.setItem('currentPage', currentPage);
+  }, [currentPage]);
+
+  // Handle scroll for page navigation (not initial mount)
+  useEffect(() => {
+    // Skip on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    
+    // Scroll to top when navigating between pages
+    if (currentPage !== 'browse') {
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+      }, 0);
+    }
   }, [currentPage]);
 
   // Protected navigation
@@ -138,7 +176,9 @@ function App() {
       {/* ================= PAGE CONTENT ================= */}
       <main className="flex-grow">
         {currentPage === 'home' && <HomePage goTo={goTo} />}
-        {currentPage === 'browse' && <PetBrowsePage />}
+        {currentPage === 'browse' && (
+          <PetBrowsePage onNavigateToLogin={() => setCurrentPage('login')} />
+        )}
         {currentPage === 'report' && <ReportPage />}
         {currentPage === 'dashboard' && <DashboardPage />}
         {currentPage === 'profile' && <ProfilePage />}

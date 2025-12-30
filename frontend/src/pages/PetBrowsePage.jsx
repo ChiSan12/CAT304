@@ -4,9 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import PetCard from '../components/PetCard';
 import PetDetailPage from './PetDetailPage';
 
-export default function PetBrowsePage() {
+export default function PetBrowsePage({ onNavigateToLogin }) {
   const { user } = useAuth();
   const [scrollPosition, setScrollPosition] = useState(0);
+
+  // Per-user storage keys
+  const storageKey = user ? `selectedPet_${user._id}` : 'selectedPet_guest';
+  const viewingDetailKey = user ? `viewingDetail_${user._id}` : 'viewingDetail_guest';
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -17,17 +21,43 @@ export default function PetBrowsePage() {
   const [filteredPets, setFilteredPets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAIMatch, setShowAIMatch] = useState(false);
-  const [selectedPet, setSelectedPet] = useState(null);
+  
+  // Restore selectedPet from storage if we were viewing detail
+  const [selectedPet, setSelectedPet] = useState(() => {
+    const wasViewingDetail = sessionStorage.getItem(viewingDetailKey) === 'true';
+    if (wasViewingDetail) {
+      const saved = sessionStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Error restoring pet:', e);
+        }
+      }
+    }
+    return null;
+  });
+  
   const [myRequests, setMyRequests] = useState([]); 
 
   const [filters, setFilters] = useState({
-  species: 'All',
-  size: 'All',
-  temperament: 'All'
+    species: 'All',
+    size: 'All',
+    temperament: 'All'
   });
 
+  // Save selectedPet to storage
+  useEffect(() => {
+    if (selectedPet) {
+      sessionStorage.setItem(storageKey, JSON.stringify(selectedPet));
+      sessionStorage.setItem(viewingDetailKey, 'true');
+    } else {
+      sessionStorage.removeItem(storageKey);
+      sessionStorage.setItem(viewingDetailKey, 'false');
+    }
+  }, [selectedPet, storageKey, viewingDetailKey]);
 
-  // --- Logic: Initial Fetch ---
+  // Initial Fetch
   useEffect(() => {
     fetchPets();
     if (user && user.id) {
@@ -68,18 +98,22 @@ export default function PetBrowsePage() {
     }
   };
 
-  // --- Logic: Filters & AI ---
+  // Filters & Smart Matching
   const applyFilters = () => {
     let result = [...pets];
     if (filters.species !== 'All') result = result.filter(pet => pet.species === filters.species);
     if (filters.size !== 'All') result = result.filter(pet => pet.size === filters.size);
     if (filters.temperament !== 'All') result = result.filter(pet => pet.labels.temperament.includes(filters.temperament));
     setFilteredPets(result);
+    setShowAIMatch(false); // Turn off Smart Matching banner when manually filtering
   };
 
   const getAIMatches = async () => {
     if (!user || !user.id) { 
-      alert("Please login to use AI Matching! 🤖"); 
+      const shouldLogin = window.confirm("Please login to use AI Matching! Would you like to go to the login page?");
+      if (shouldLogin && onNavigateToLogin) {
+        onNavigateToLogin();
+      }
       return; 
     }
     setLoading(true);
@@ -107,10 +141,13 @@ export default function PetBrowsePage() {
     setShowAIMatch(false);
   };
 
-  // --- Logic: Adoption Request ---
+  // Adoption Request
   const toggleAdoptionStatus = async (petId, isAlreadyRequested) => {
     if (!user || !user.id) {
-      alert("Please login to adopt!");
+      const shouldLogin = window.confirm("Please login to adopt! Would you like to go to the login page?");
+      if (shouldLogin && onNavigateToLogin) {
+        onNavigateToLogin();
+      }
       return;
     }
 
@@ -149,15 +186,13 @@ export default function PetBrowsePage() {
     }
   };
 
-  // View: Detail Page Logic
+  // Detail Page View
   if (selectedPet) {
     return (
       <PetDetailPage
         pet={selectedPet}
         onBack={() => {
           setSelectedPet(null);
-
-          
           setTimeout(() => {
             window.scrollTo({
               top: scrollPosition,
@@ -168,11 +203,12 @@ export default function PetBrowsePage() {
         onRequestSubmitted={() => {
           if (user?.id) fetchMyRequests(user.id);
         }}
+        onNavigateToLogin={onNavigateToLogin}
       />
     );
   }
 
-  // View: Browse Page
+  // Browse Page
   return (
     <div className="page-container">
       {/* Header */}
@@ -223,7 +259,7 @@ export default function PetBrowsePage() {
           </div>
         </div>
 
-        {/* AI Banner */}
+        {/* Smart Matching Banner */}
         {showAIMatch && (
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 flex items-center gap-3 animate-fade-in">
             <Sparkles className="w-5 h-5 text-[#FF8C42]" />

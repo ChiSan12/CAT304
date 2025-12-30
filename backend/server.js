@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const { GoogleGenAI } = require("@google/genai");
+const ChatHistory = require('./models/chatHistory');
 
 const app = express();
 
@@ -26,16 +27,69 @@ const ai = new GoogleGenAI({ key: process.env.GEMINI_API_KEY });
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message } = req.body;
-    if (!message) return res.status(400).json({ error: "Message is required" });
+    // Extract user message and authenticated user ID from request body
+    const { message, userId, sessionId  } = req.body;
 
+    // Basic request validation
+    // Both message content and user identity are required
+    if (!message || (!userId && !sessionId)) {
+      return res.status(400).json({ error: "Message and user identification are required" });
+    }
+
+    // Retrieve chat history by user or session
+    let history;
+    if (userId) {
+      history = await ChatHistory.findOne({ userId });
+    } else {
+      history = await ChatHistory.findOne({ sessionId });
+    }
+
+    // Create new history if not found
+    if (!history) {
+      history = new ChatHistory({
+        userId: userId || null,
+        sessionId: sessionId || null,
+        messages: []
+      });
+    }
+    
+    // Combine previous conversation history with the new user message
+    // This context is provided to the AI model to generate coherent responses
+    const contents = [
+      ...history.messages.map(m => ({
+        role: m.role,
+        parts: [{ text: m.content }]
+      })),
+      {
+        role: "user",
+        parts: [{ text: message }]
+      }
+    ];
+
+    // Generate AI response using the Gemini model with conversational context
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", 
-      contents: [{ role: "user", parts: [{ text: message }] }],
+      model: "gemini-2.5-flash",
+      contents
     });
 
-    const text = response.text;
-    res.json({ reply: text || "AI is currently unresponsive." });
+    // Extract AI-generated text response
+    const reply = response.text || "AI is currently unresponsive.";
+
+    // Append the latest user message and AI response to conversation memory
+    history.messages.push(
+      { role: "user", content: message },
+      { role: "assistant", content: reply }
+    );
+
+    // Retain only the most recent 20 messages to control memory size
+    // and reduce unnecessary context length
+    history.messages = history.messages.slice(-20);
+
+    // Persist updated conversation history to the database
+    await history.save();
+
+    // Return AI response to the frontend
+    res.json({ reply });
   } catch (error) {
     console.error("Gemini Error:", error);
     res.status(500).json({ error: error.message || "AI processing failed" });

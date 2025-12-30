@@ -2,23 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Heart, MapPin, CheckCircle, AlertCircle, Phone, Mail, Sparkles, XCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
+export default function PetDetailPage({ pet, onBack, onRequestSubmitted, onNavigateToLogin }) {
   const { user } = useAuth();
   
+  // Scroll to top when this page loads
   useEffect(() => {
-  window.scrollTo({ top: 0 });
+    window.scrollTo(0, 0);
   }, []);
 
-  // 1. Smart Pet Matching detection (compatible with old and new data)
+  // Smart Pet Matching detection (compatible with old and new data)
   const matchScore = pet?.compatibilityScore;
-  // If coming from Smart Pet Matching list or has a valid score greater than 0, treat as a smart match
   const isAIMatch = pet?._fromAI || (matchScore !== undefined && matchScore > 0);
   
   const [isRequested, setIsRequested] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // 2. Check whether the user has already requested this pet
+  // Check whether the user has already requested this pet
   useEffect(() => {
     const checkRequestStatus = async () => {
       if (!user?.id) return;
@@ -27,7 +27,6 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
         const data = await res.json();
         
         if (data.success) {
-          // Check if this pet ID exists in the request list
           const requested = data.requests.some(
             req => (req.petId._id === pet._id) || (req.petId === pet._id)
           );
@@ -41,14 +40,18 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
     checkRequestStatus();
   }, [user, pet]);
 
-  // 3. Handle request or cancel request
+  // Handle request or cancel request
   const handleToggleRequest = async () => {
     if (!user) {
-      alert('Please login to adopt!');
+      const shouldLogin = window.confirm(
+        "Please login to adopt! Would you like to go to the login page?"
+      );
+      if (shouldLogin && onNavigateToLogin) {
+        onNavigateToLogin(); // Navigate to login via App.js
+      }
       return;
     }
 
-    // Show confirmation dialog when cancelling
     if (isRequested) {
       const confirmCancel = window.confirm("Are you sure you want to cancel your request?");
       if (!confirmCancel) return;
@@ -57,10 +60,9 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
     setLoading(true);
 
     try {
-      // Dynamically determine API endpoint and HTTP method
       const url = isRequested 
-        ? `http://localhost:5000/api/adopters/${user.id}/request/${pet._id}` // Delete
-        : `http://localhost:5000/api/adopters/${user.id}/request`;           // Post
+        ? `http://localhost:5000/api/adopters/${user.id}/request/${pet._id}`
+        : `http://localhost:5000/api/adopters/${user.id}/request`;
       
       const method = isRequested ? 'DELETE' : 'POST';
       const body = isRequested ? null : JSON.stringify({ petId: pet._id });
@@ -77,14 +79,12 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
         const newStatus = !isRequested;
         setIsRequested(newStatus);
         
-        // Show modal only when request is successfully submitted
         if (newStatus) {
           setShowConfirmModal(true);
         } else {
           alert("Request cancelled.");
         }
 
-        // Notify parent page to refresh data
         if (onRequestSubmitted) onRequestSubmitted();
       } else {
         alert(data.message || 'Operation failed');
@@ -111,7 +111,7 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
 
       <div className="content-wrapper">
         
-        {/* Smart Pet Matching banner (shown only for matched pets) */}
+        {/* Smart Pet Matching banner */}
         {isAIMatch && (
           <div className="mb-8 bg-gradient-to-r from-orange-100 to-amber-50 border border-orange-200 rounded-2xl p-6 flex items-start gap-4 shadow-sm animate-fade-in">
             <div className="p-3 bg-white rounded-full shadow-sm text-[#FF8C42] mt-1">
@@ -175,7 +175,7 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
               <h3 className="text-2xl font-bold text-gray-900 mb-2">{pet.name}</h3>
               <p className="text-gray-600 mb-6">{pet.breed} • {pet.species}</p>
 
-              {/* Shelter information with safe fallback */}
+              {/* Shelter information */}
               <div className="mb-6 p-4 bg-gray-50 rounded-lg flex gap-3">
                 <MapPin className="w-5 h-5 text-[#FF8C42] shrink-0" />
                 <div>
@@ -184,15 +184,15 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
                 </div>
               </div>
 
-              {/* Action button with state-based styling */}
+              {/* Action button */}
               {pet.adoptionStatus === 'Available' ? (
                  <button 
                     onClick={handleToggleRequest} 
                     disabled={loading} 
                     className={`w-full font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-3 transform hover:-translate-y-0.5 
                     ${isRequested 
-                        ? 'bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100' // 取消状态 (红色)
-                        : 'bg-gradient-to-r from-[#FF8C42] to-[#FFA726] text-white hover:from-[#e67e3b] hover:to-[#f59e0b]' // 申请状态 (橙色)
+                        ? 'bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100'
+                        : 'bg-gradient-to-r from-[#FF8C42] to-[#FFA726] text-white hover:from-[#e67e3b] hover:to-[#f59e0b]'
                     }`}
                  >
                     {loading ? (
@@ -209,7 +209,7 @@ export default function PetDetailPage({ pet, onBack, onRequestSubmitted }) {
                 </div>
               )}
 
-              {/* Contact information with fallback display */}
+              {/* Contact information */}
               <div className="mt-6 pt-6 border-t border-gray-200 space-y-3 text-sm text-gray-600">
                 <div className="flex gap-3 items-center">
                   <Phone className="w-4 h-4 text-[#FF8C42]"/> 
