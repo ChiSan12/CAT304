@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs'); // 需要安装: npm install bcryptjs
+const bcrypt = require('bcryptjs'); 
 const Adopter = require('../models/adopter');
 const Pet = require('../models/pet');
 const Shelter = require('../models/shelter');
@@ -203,8 +203,26 @@ router.post('/:adopterId/request', async (req, res) => {
     const { adopterId } = req.params;
     const { petId } = req.body;
 
-    // Check if a pending request for the same pet already exists
+    // Check whether the pet still exists
+    const pet = await Pet.findById(petId);
+    if (!pet) {
+      return res.json({ 
+        success: false, 
+        message: 'Pet not found' 
+      });
+    }
+
+    // Ensure the pet is still available for adoption
+    if (pet.adoptionStatus !== 'Available') {
+      return res.json({ 
+        success: false, 
+        message: 'This pet is no longer available for adoption' 
+      });
+    }
+    // Find the adopter
     const adopter = await Adopter.findById(adopterId);
+    
+    // Check if the adopter has already submitted a pending request for this pet
     const existingRequest = adopter.adoptionRequests.find(
       req => req.petId.toString() === petId && req.status === 'Pending'
     );
@@ -216,7 +234,7 @@ router.post('/:adopterId/request', async (req, res) => {
       });
     }
 
-    // Add new adoption request
+    // Add a new adoption request
     adopter.adoptionRequests.push({
       petId,
       status: 'Pending',
@@ -265,7 +283,7 @@ router.delete('/:adopterId/request/:petId', async (req, res) => {
   }
 });
 
-//// 7. Get All Adoption Requests of an Adopter
+// 7. Get All Adoption Requests of an Adopter
 router.get('/:adopterId/requests', async (req, res) => {
   try {
     const { adopterId } = req.params;

@@ -62,7 +62,7 @@ export default function HomePage({ goTo }) {
 
           <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <FeatureCard
-              title="🧠 AI-Powered Pet Matching"
+              title="🧠 Smart Pet Matching"
               text="Match adopters with pets based on lifestyle and compatibility score."
             />
             <FeatureCard
@@ -108,7 +108,7 @@ export default function HomePage({ goTo }) {
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-5 gap-4 max-w-6xl mx-auto text-xl">
           <Step text="Create an account" />
-          <Step text="Browse pets or get AI recommendations" />
+          <Step text="Browse pets or get Smart Pet recommendations" />
           <Step text="Send adoption request or report a stray" />
           <Step text="Shelter reviews & responds" />
           <Step text="Post-adoption health tracking continues" />

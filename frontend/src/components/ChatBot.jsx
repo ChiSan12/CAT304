@@ -1,19 +1,56 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect,useLayoutEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const ChatBot = () => {
+  // Get the currently logged-in user from AuthContext
+  const { user } = useAuth();
+  // Generate a unique localStorage key per user
+  // This prevents different users from seeing each other's chat UI
+  const storageKey = user ? `chatUI_${user._id}` : 'chatUI_guest';
   const [isOpen, setIsOpen] = useState(false); // Toggle chat window
   const [messages, setMessages] = useState([
     { text: "Hello! I'm your AI assistant. How can I help you find your new best friend today? 🐶🐱", sender: "bot" }
   ]);
+  // Store user input text
   const [inputValue, setInputValue] = useState("");
+  // Loading state while waiting for AI response
   const [isLoading, setIsLoading] = useState(false);
-  
+
+  // Generate a temporary session ID for guest users
+  const sessionId = useRef(
+    localStorage.getItem('chatSessionId') ||
+    crypto.randomUUID()
+  );
+
+  useEffect(() => {
+    localStorage.setItem('chatSessionId', sessionId.current);
+  }, []);
+
+  // Load previous chat UI from localStorage when user changes or page refreshes
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      setMessages(JSON.parse(saved));
+    }
+  }, [storageKey]);
+
   // Auto-scroll to bottom
-  const messagesEndRef = useRef(null);
+  const messagesAreaRef = useRef(null);
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesAreaRef.current) {
+    messagesAreaRef.current.scrollTop =
+      messagesAreaRef.current.scrollHeight;}
   };
-  useEffect(scrollToBottom, [messages]);
+  useLayoutEffect(() => {
+  if (isOpen) {
+    scrollToBottom();
+  }
+  }, [messages, isOpen]);
+
+  // Persist chat UI messages in localStorage for page refresh recovery
+  useEffect(() => {
+    localStorage.setItem(storageKey, JSON.stringify(messages));
+  }, [messages,storageKey]);
 
   // Handle Send Message
   const handleSend = async () => {
@@ -30,7 +67,7 @@ const ChatBot = () => {
       const response = await fetch('http://localhost:5000/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage.text }),
+        body: JSON.stringify({ message: userMessage.text,userId: user?._id, sessionId: sessionId.current}),
       });
 
       const data = await response.json();
@@ -153,7 +190,7 @@ const ChatBot = () => {
             <span style={{cursor:'pointer', fontSize: '20px'}} onClick={() => setIsOpen(false)}>−</span>
           </div>
 
-          <div style={styles.messagesArea}>
+          <div style={styles.messagesArea} ref={messagesAreaRef}>
             {messages.map((msg, index) => (
               <div key={index} style={styles.messageRow(msg.sender)}>
                 <div style={styles.messageBubble(msg.sender)}>
@@ -162,7 +199,6 @@ const ChatBot = () => {
               </div>
             ))}
             {isLoading && <div style={{color: '#999', fontSize: '12px', marginLeft: '10px'}}>AI is thinking... 🤔</div>}
-            <div ref={messagesEndRef} />
           </div>
 
           <div style={styles.inputArea}>
