@@ -10,7 +10,8 @@ import {
   AlertTriangle, 
   MapPin, 
   Heart,
-  XCircle
+  XCircle,
+  User
 } from 'lucide-react';
 import AddPetModal from '../components/AddPetModal';
 import EditPetModal from '../components/EditPetModal';
@@ -36,7 +37,6 @@ export default function ShelterDashboard() {
   
   // Rescue Modal State
   const [rescueModal, setRescueModal] = useState({ show: false, report: null });
-  // CHANGED: Added ageYears and ageMonths
   const [rescueForm, setRescueForm] = useState({ name: '', breed: '', ageYears: '', ageMonths: '', gender: 'Male' });
 
   // --- REFRESH FUNCTION ---
@@ -150,7 +150,6 @@ export default function ShelterDashboard() {
   };
 
   const openRescueModal = (report) => {
-    // CHANGED: Reset both age fields
     setRescueForm({ name: '', breed: '', ageYears: '0', ageMonths: '0', gender: 'Male' });
     setRescueModal({ show: true, report });
   };
@@ -306,13 +305,15 @@ export default function ShelterDashboard() {
                    <tr>
                      <th className="p-4 text-gray-600 font-medium">Date</th>
                      <th className="p-4 text-gray-600 font-medium">Animal</th>
+                     {/* ADDED REPORTER HEADER */}
+                     <th className="p-4 text-gray-600 font-medium">Reporter</th>
                      <th className="p-4 text-gray-600 font-medium">Location</th>
                      <th className="p-4 text-gray-600 font-medium">Status</th>
                      <th className="p-4 text-gray-600 font-medium text-right">Actions</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-gray-100">
-                   {strays.length === 0 ? <tr><td colSpan="5" className="p-6 text-center text-gray-500">No stray reports found.</td></tr> : 
+                   {strays.length === 0 ? <tr><td colSpan="6" className="p-6 text-center text-gray-500">No stray reports found.</td></tr> : 
                      strays.map(r => (
                      <tr key={r._id} className="hover:bg-gray-50">
                        <td className="p-4 text-sm text-gray-600">
@@ -327,9 +328,22 @@ export default function ShelterDashboard() {
                             </div>
                          </div>
                        </td>
+                       
+                       {/* ADDED REPORTER COLUMN */}
+                       <td className="p-4">
+                         <div className="flex items-start gap-2">
+                           <User size={16} className="mt-1 text-gray-400" />
+                           <div>
+                             <div className="text-sm font-bold text-gray-900">{r.reportedBy?.fullName || 'Unknown'}</div>
+                             <div className="text-xs text-gray-500">{r.reportedBy?.email}</div>
+                             {r.reportedBy?.phone && <div className="text-xs text-gray-500">{r.reportedBy.phone}</div>}
+                           </div>
+                         </div>
+                       </td>
+
                        <td className="p-4 max-w-xs truncate text-sm" title={r.placeDesc}>
                          {r.placeDesc}
-                         <a href={`http://googleusercontent.com/maps.google.com/4{r.pin?.lat},${r.pin?.lng}`} target="_blank" rel="noreferrer" className="block text-xs text-blue-500 hover:underline mt-1 flex items-center gap-1">
+                         <a href={`http://googleusercontent.com/maps.google.com/5{r.pin?.lat},${r.pin?.lng}`} target="_blank" rel="noreferrer" className="block text-xs text-blue-500 hover:underline mt-1 flex items-center gap-1">
                            <MapPin size={10} /> View Map
                          </a>
                        </td>
@@ -391,7 +405,7 @@ export default function ShelterDashboard() {
       <AddPetModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onSave={refreshData} shelterId={SHELTER_ID} />
       <EditPetModal isOpen={!!editingPet} onClose={() => setEditingPet(null)} onSave={refreshData} pet={editingPet} />
       
-      {/* RESCUE MODAL (UPDATED WITH MONTHS) */}
+      {/* RESCUE MODAL (With Age Fix) */}
       {rescueModal.show && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden animate-fade-in">
@@ -424,7 +438,6 @@ export default function ShelterDashboard() {
                 </div>
               </div>
               
-              {/* CHANGED: SPLIT YEARS AND MONTHS */}
               <div className="grid grid-cols-2 gap-3">
                  <div>
                   <label className="text-xs font-bold text-gray-500 uppercase">Age (Years)</label>
