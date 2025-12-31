@@ -5,7 +5,7 @@ import { Mail, Lock, Heart, Shield, AlertCircle } from 'lucide-react';
 const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false); // NEW: Toggle for Shelter/Adopter login
+  const [isAdmin, setIsAdmin] = useState(false); // Toggle for Shelter/Adopter login
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -23,7 +23,7 @@ const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
     setLoading(true);
 
     try {
-      // NEW: Choose correct endpoint based on toggle
+      // Choose correct endpoint based on toggle
       const endpoint = isAdmin 
         ? 'http://localhost:5000/api/shelters/login' 
         : 'http://localhost:5000/api/adopters/login';
@@ -37,7 +37,7 @@ const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
       const data = await response.json();
 
       if (data.success) {
-        // NEW: Standardize user data with role for AuthContext
+        // Standardize user data with role for AuthContext
         let userData;
         if (isAdmin) {
           userData = { ...data.shelter, role: 'shelter' };
@@ -220,7 +220,7 @@ const LoginPage = ({ onLoginSuccess, onSwitchToRegister }) => {
               </button>
             </form>
 
-            {/* NEW: Toggle between Adopter and Shelter login */}
+            {/* Toggle between Adopter and Shelter login */}
             <div className="mt-6 pt-6 border-t border-gray-200 text-center">
               <button 
                 type="button"
