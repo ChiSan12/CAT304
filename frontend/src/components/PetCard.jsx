@@ -11,6 +11,30 @@ export default function PetCard({ pet, showScore, isRequested, onToggleRequest, 
       ? 'bg-green-100 text-green-700 border-2 border-green-500 hover:bg-red-50 hover:text-red-600 hover:border-red-500'
       : 'bg-[#FF8C42] hover:bg-[#e67e3b] text-white';
 
+  // Format pet age to a readable string (supports object, number, or string formats)
+  // Example outputs: "2 yrs 3 mo", "3 yrs", "8 mo"
+  const formatAge = (age) => {
+    // If no age data exists, return nothing
+    if (!age) return null;
+
+    // If age is already a formatted string (e.g., from virtual "fullAge")
+    if (typeof age === 'string') {
+      return age;
+    }
+
+    // If age is stored as an object { years, months }
+    const years = age.years ?? 0;
+    const months = age.months ?? 0;
+
+    // If both are zero or missing, do not display age
+    if (!years && !months) return null;
+
+    // Build formatted age string based on available values
+    if (years && months) return `${years} yrs ${months} mo`;
+    if (years) return `${years} yrs`;
+    return `${months} mo`;
+  };
+
   return (
     <div className="pet-card">
       {/* Image section */}
@@ -41,9 +65,19 @@ export default function PetCard({ pet, showScore, isRequested, onToggleRequest, 
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{pet.description}</p>
         
         <div className="flex flex-wrap gap-2 mb-4">
+          {/* Show age tag if available */}
+          {formatAge(pet.age) && (
+            <span className="tag-pill bg-blue-100 text-blue-800">
+              {formatAge(pet.age)}
+            </span>
+          )}
+
+          {/* Pet size */}
            <span className="tag-pill bg-orange-100 text-orange-800">
              {pet.size}
            </span>
+
+           {/* Show up to two temperament labels */}
            {pet.labels?.temperament?.slice(0, 2).map((trait, idx) => (
              <span key={idx} className="tag-pill bg-yellow-100 text-yellow-800">
                {trait}

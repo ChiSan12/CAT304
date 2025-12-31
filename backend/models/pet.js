@@ -61,7 +61,7 @@ const petSchema = new mongoose.Schema({
     caption: String
   }],
 
-  // AI Labels (used for matching algorithms)
+  // Labels (used for matching algorithms)
   labels: {
     temperament: {
       type: [String],

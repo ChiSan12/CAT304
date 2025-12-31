@@ -31,6 +31,30 @@ export default function PetDetailPage({
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+  // Format pet age to a readable string (supports object, number, or string formats)
+  // Example outputs: "2 yrs 3 mo", "3 yrs", "8 mo"
+  const formatAge = (age) => {
+    // If no age data exists, return nothing
+    if (!age) return null;
+
+    // If age is already a formatted string (e.g., from virtual "fullAge")
+    if (typeof age === 'string') {
+      return age;
+    }
+
+    // If age is stored as an object { years, months }
+    const years = age.years ?? 0;
+    const months = age.months ?? 0;
+
+    // If both are zero or missing, do not display age
+    if (!years && !months) return null;
+
+    // Build formatted age string based on available values
+    if (years && months) return `${years} yrs ${months} mo`;
+    if (years) return `${years} yrs`;
+    return `${months} mo`;
+  };
+
   // Match message logic
   const getMatchMessage = (score) => {
     if (score >= 80) {
@@ -201,6 +225,8 @@ export default function PetDetailPage({
               <h3 className="text-2xl font-bold mb-2">{pet.name}</h3>
               <p className="text-gray-600 mb-6">
                 {pet.breed} • {pet.species}
+                {/* Only show age if data exists */}
+                {formatAge(pet.age) && <> • {formatAge(pet.age)}</>}
               </p>
 
               {pet.adoptionStatus === "Available" ? (
