@@ -32,6 +32,9 @@ export default function MyDashboard() {
   }, [user]);
 
   const loadDashboard = async () => {
+    // 1. Safety check: Stop if user isn't loaded yet to fix the "undefined" error in your console
+    if (!user || !user.id) return;
+
     try {
       setLoading(true);
       const res = await fetch(`http://localhost:5000/api/adopters/${user.id}`);
@@ -39,7 +42,28 @@ export default function MyDashboard() {
 
       if (data.success) {
         const requests = data.adopter.adoptionRequests || [];
-        const adopted = data.adopter.adoptedPets || [];
+        const dbAdopted = data.adopter.adoptedPets || [];
+
+        // 2. THE FIX: Treat 'Approved' requests as Adopted pets
+        // This takes any request marked 'Approved' and adds it to the adopted list
+        const approvedAsAdopted = requests
+          .filter(r => r.status === 'Approved')
+          .map(r => ({
+            petId: r.petId,
+            adoptionDate: r.requestDate, // Use request date since adoption date isn't set yet
+            _id: r._id
+          }));
+
+        // Combine the actual database adopted pets with the approved requests
+        // Using a Map to remove duplicates based on petId, just in case
+        const uniqueAdoptedMap = new Map();
+        [...dbAdopted, ...approvedAsAdopted].forEach(item => {
+            if (item.petId?._id) {
+                uniqueAdoptedMap.set(item.petId._id, item);
+            }
+        });
+        
+        const allAdopted = Array.from(uniqueAdoptedMap.values());
 
         setDashboardData({
           stats: {
@@ -47,10 +71,10 @@ export default function MyDashboard() {
             pendingRequests: requests.filter(r => r.status === 'Pending').length,
             approvedRequests: requests.filter(r => r.status === 'Approved').length,
             rejectedRequests: requests.filter(r => r.status === 'Rejected').length,
-            adoptedPets: adopted.length
+            adoptedPets: allAdopted.length // Update the count
           },
           requests: requests,
-          adoptedPets: adopted
+          adoptedPets: allAdopted // Update the list
         });
       }
     } catch (err) {
