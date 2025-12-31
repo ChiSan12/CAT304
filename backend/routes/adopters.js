@@ -8,17 +8,17 @@ const Shelter = require('../models/shelter');
 //1. Register New User
 router.post('/register', async (req, res) => {
   try {
-    const { username, email, password, fullName, phone } = req.body;
+    const {email, password, fullName, phone } = req.body;
 
-    // Check if user already exists (by email or username)
+    // Check if user already exists (by email)
     const existingUser = await Adopter.findOne({ 
-      $or: [{ email }, { username }] 
+      $or: [{ email }] 
     });
     
     if (existingUser) {
       return res.json({ 
         success: false, 
-        message: 'Username or email already exists' 
+        message: 'Email already exists' 
       });
     }
 
@@ -27,7 +27,6 @@ router.post('/register', async (req, res) => {
 
     // Create new adopter account
     const newAdopter = new Adopter({
-      username,
       email,
       password: hashedPassword, // Store hashed password
       fullName,
@@ -77,7 +76,6 @@ router.post('/login', async (req, res) => {
     // Prepare user data (exclude password)
     const adopterData = {
       id: adopter._id,
-      username: adopter.username,
       email: adopter.email,
       fullName: adopter.fullName,
       phone: adopter.phone,

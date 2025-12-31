@@ -4,7 +4,7 @@ const multer = require('multer');
 const mongoose = require('mongoose');
 const Report = require('../models/report');
 const Adopter = require('../models/adopter');
-const Pet = require('../models/Pet'); // Needed for rescue logic
+const Pet = require('../models/pet'); // Needed for rescue logic
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage });

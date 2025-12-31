@@ -98,7 +98,7 @@ export default function MyDashboard() {
       <div className="bg-gradient-to-r from-[#FF8C42] to-[#FFA726] text-white">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold mb-2">My Dashboard</h1>
-          <p className="text-white/90">Welcome back, {user?.fullName || user?.username}! 👋</p>
+          <p className="text-white/90">Welcome back, {user?.fullName}! 👋</p>
         </div>
       </div>
 

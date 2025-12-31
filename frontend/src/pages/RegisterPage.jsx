@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   AlertCircle,
   CheckCircle,
-  User,
   Mail,
   Lock,
   Phone,
@@ -12,7 +11,6 @@ import {
 
 export default function RegisterPage({ onSwitchToLogin }) {
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -35,10 +33,9 @@ export default function RegisterPage({ onSwitchToLogin }) {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters';
+
+    if (!formData.phone.trim()) {
+    newErrors.phone = 'Phone number is required for account registration';
     }
 
     if (!formData.email.trim()) {
@@ -99,7 +96,6 @@ export default function RegisterPage({ onSwitchToLogin }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          username: formData.username,
           email: formData.email,
           password: formData.password,
           fullName: formData.fullName,
@@ -116,7 +112,6 @@ export default function RegisterPage({ onSwitchToLogin }) {
         });
 
         setFormData({
-          username: '',
           email: '',
           password: '',
           confirmPassword: '',
@@ -208,30 +203,6 @@ export default function RegisterPage({ onSwitchToLogin }) {
             )}
 
             <div className="space-y-4">
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Username *</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    className={`w-full pl-11 pr-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-transparent focus:outline-none focus:ring-offset-0 ${
-                      errors.username ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Enter your username"
-                  />
-                </div>
-
-                {errors.username && (
-                  <p className="text-xs text-red-600 mt-1">
-                    {errors.username}
-                  </p>
-                )}
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
                 <div className="relative">
@@ -248,7 +219,7 @@ export default function RegisterPage({ onSwitchToLogin }) {
                   />
                 </div>
 
-                {errors.fullname && (
+                {errors.fullName && (
                   <p className="text-xs text-red-600 mt-1">
                     {errors.fullName}
                   </p>
@@ -278,7 +249,7 @@ export default function RegisterPage({ onSwitchToLogin }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
 
                 <div className="flex items-center w-full border border-gray-300 rounded-xl focus-within:ring-2 focus-within:ring-[#FF8C42] focus-within:border-transparent">
                   <Phone className="w-5 h-5 text-gray-400 ml-3 mr-2" />

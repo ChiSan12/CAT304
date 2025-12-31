@@ -8,13 +8,6 @@ const mongoose = require('mongoose');
 
 const adopterSchema = new mongoose.Schema({
   // === Authentication Fields ===
-  username: { 
-    type: String, 
-    required: true,
-    unique: true,
-    trim: true,
-    minlength: 3
-  },
   email: { 
     type: String, 
     required: true, 
@@ -122,18 +115,10 @@ const adopterSchema = new mongoose.Schema({
   isActive: { 
     type: Boolean, 
     default: true 
-  },
-  
-  // === Timestamps ===
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
-  },
-  updatedAt: { 
-    type: Date, 
-    default: Date.now 
   }
-}, {
+},
+  
+   {
   timestamps: true // Automatically manage createdAt and updatedAt
 });
 
@@ -144,7 +129,6 @@ const adopterSchema = new mongoose.Schema({
 adopterSchema.methods.getPublicProfile = function() {
   return {
     id: this._id,
-    username: this.username,
     fullName: this.fullName,
     email: this.email,
     phone: this.phone,
