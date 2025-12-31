@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, MapPin, Dog, Save, CheckCircle, Home, Phone } from 'lucide-react';
+import { User, Mail, MapPin, Dog, Save, CheckCircle, Home, Phone, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function ProfilePage() {
@@ -100,7 +100,7 @@ export default function ProfilePage() {
       if (data.success) {
         setMessage({ 
           type: 'success', 
-          text: 'Profile updated successfully! ✅' 
+          text: 'Profile updated successfully! ' 
         });
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -167,17 +167,25 @@ export default function ProfilePage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Success/Error Message */}
         {message.text && (
-          <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 shadow-sm ${
-            message.type === 'success' 
-              ? 'bg-green-50 border-2 border-green-200' 
-              : 'bg-red-50 border-2 border-red-200'
-          }`}>
-            <CheckCircle className={`w-5 h-5 ${
-              message.type === 'success' ? 'text-green-600' : 'text-red-600'
-            }`} />
-            <p className={`text-sm font-medium ${
-              message.type === 'success' ? 'text-green-800' : 'text-red-800'
-            }`}>
+          <div
+            className={`mb-6 p-4 rounded-xl flex items-center gap-3 shadow-sm ${
+              message.type === 'success'
+                ? 'bg-green-50 border-2 border-green-200'
+                : 'bg-red-50 border-2 border-red-200'
+            }`}
+          >
+            {/* Use different icons for success and error */}
+            {message.type === 'success' ? (
+              <CheckCircle className="w-5 h-5 text-green-600" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-red-600" />
+            )}
+
+            <p
+              className={`text-sm font-medium ${
+                message.type === 'success' ? 'text-green-800' : 'text-red-800'
+              }`}
+            >
               {message.text}
             </p>
           </div>
