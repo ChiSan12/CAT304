@@ -225,6 +225,8 @@ export default function PetDetailPage({
               <h3 className="text-2xl font-bold mb-2">{pet.name}</h3>
               <p className="text-gray-600 mb-6">
                 {pet.breed} • {pet.species}
+                {pet.gender && <> • {pet.gender}</>}
+                {pet.size && <> • {pet.size}</>}
                 {/* Only show age if data exists */}
                 {formatAge(pet.age) && <> • {formatAge(pet.age)}</>}
               </p>
@@ -259,6 +261,28 @@ export default function PetDetailPage({
                 </div>
               </div>
 
+              {pet.labels?.temperament?.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="font-semibold">Temperament</h4>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {pet.labels.temperament.map((t, i) => (
+                      <span key={i} className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {pet.healthStatus && (
+                <div className="mt-6 bg-gray-50 p-4 rounded-xl text-sm">
+                  <p><strong>Vaccinated:</strong> {pet.healthStatus.vaccinated ? "Yes" : "No"}</p>
+                  <p><strong>Neutered:</strong> {pet.healthStatus.neutered ? "Yes" : "No"}</p>
+                  {pet.healthStatus.medicalConditions?.length > 0 && (
+                    <p><strong>Conditions:</strong> {pet.healthStatus.medicalConditions.join(", ")}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
