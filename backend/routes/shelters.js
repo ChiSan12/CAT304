@@ -120,60 +120,35 @@ router.get('/:shelterId/requests', async (req, res) => {
   } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 });
 
-// ==================================================================
-// 7. PROCESS REQUEST (UPDATED LOGIC: MANUAL LOOP)
-// ==================================================================
-router.put('/requests/:adopterId/:requestId', async (req, res) => {
+// 7. Get All Adoption Requests of an Adopter
+router.get('/:adopterId/requests', async (req, res) => {
   try {
-    const { status, petId } = req.body; 
-    const { adopterId, requestId } = req.params;
+    const { adopterId } = req.params;
 
-    // STEP A: Update the User's Request
-    // We fetch the user first to ensure we are modifying the correct sub-document
-    const mainAdopter = await Adopter.findById(adopterId);
-    if(mainAdopter) {
-        const targetReq = mainAdopter.adoptionRequests.id(requestId);
-        if(targetReq) {
-            targetReq.status = status;
-            await mainAdopter.save();
-        }
+    // 1. Fetch the adopter
+    const adopter = await Adopter.findById(adopterId)
+      .populate('adoptionRequests.petId'); 
+
+    // 2. CRITICAL FIX: Check if adopter exists before accessing properties
+    if (!adopter) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Adopter not found',
+        requests: [] // Return empty array so frontend doesn't crash
+      });
     }
 
-    // STEP B: If Approved, Run Auto-Logic
-    if (status === 'Approved' && petId) {
-      
-      // 1. UPDATE PET STATUS TO ADOPTED
-      await Pet.findByIdAndUpdate(petId, { adoptionStatus: 'Adopted' });
+    res.json({ 
+      success: true, 
+      requests: adopter.adoptionRequests 
+    });
 
-      // 2. REJECT OTHERS (MANUAL LOOP METHOD)
-      // We search for ALL users who have a request for this specific petId
-      const allAdopters = await Adopter.find({ "adoptionRequests.petId": petId });
-
-      for (const user of allAdopters) {
-        let modified = false;
-
-        user.adoptionRequests.forEach(req => {
-          // Logic: Same Pet ID + Status is Pending + NOT the request we just approved
-          if (req.petId.toString() === petId.toString() && 
-              req.status === 'Pending' && 
-              req._id.toString() !== requestId.toString()) {
-            
-            req.status = 'Rejected';
-            modified = true;
-          }
-        });
-
-        if (modified) {
-          await user.save(); // Save changes to this user
-        }
-      }
-    }
-
-    res.json({ success: true, message: `Request updated to ${status}` });
-
-  } catch (error) { 
-    console.error(error);
-    res.status(500).json({ success: false, message: error.message }); 
+  } catch (error) {
+    console.error('Fetch Requests Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch requests' 
+    });
   }
 });
 
