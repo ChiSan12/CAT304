@@ -1,9 +1,18 @@
-import { useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
+import { useEffect, useState } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import axios from "axios";
-import { MapPin, Camera, FileText, Heart, AlertCircle } from 'lucide-react';
+import { MapPin, Camera, FileText, Heart, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 // Fix default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -20,7 +29,11 @@ function LocationMarker({ pin, setPin }) {
       setPin(e.latlng);
     },
   });
-  return pin ? <Marker position={pin}><Popup>Selected Location</Popup></Marker> : null;
+  return pin ? (
+    <Marker position={pin}>
+      <Popup>Selected Location</Popup>
+    </Marker>
+  ) : null;
 }
 
 // Smoothly recenter map
@@ -33,6 +46,8 @@ function RecenterMap({ coords }) {
 }
 
 export default function ReportPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [pin, setPin] = useState(null);
   const [userLocation, setUserLocation] = useState([5.4141, 100.3294]);
 
@@ -64,7 +79,14 @@ export default function ReportPage() {
   // Submit handler
   const handleSubmit = async () => {
     if (!pin) return alert("Place a pin on the map first!");
-    if (!animalDesc || !placeDesc || !animalType || !number || !condition || !reporterEmail)
+    if (
+      !animalDesc ||
+      !placeDesc ||
+      !animalType ||
+      !number ||
+      !condition ||
+      !reporterEmail
+    )
       return alert("Please fill in all the required fields!");
 
     const formData = new FormData();
@@ -101,6 +123,12 @@ export default function ReportPage() {
     }
   };
 
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+    }
+  }, [user]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pt-24">
       {/* Hero Section */}
@@ -110,7 +138,8 @@ export default function ReportPage() {
             📍 Report a Stray Animal
           </h1>
           <p className="text-lg md:text-xl text-orange-50 max-w-2xl mx-auto">
-            Help us rescue animals in need. Your report can save a life and make our community safer for everyone.
+            Help us rescue animals in need. Your report can save a life and make
+            our community safer for everyone.
           </p>
         </div>
       </div>
@@ -123,10 +152,12 @@ export default function ReportPage() {
             <MapPin size={28} />
             <div>
               <h2 className="text-2xl font-bold">Step 1: Mark the Location</h2>
-              <p className="text-orange-50 text-sm">Pin the exact spot where you found the animal</p>
+              <p className="text-orange-50 text-sm">
+                Pin the exact spot where you found the animal
+              </p>
             </div>
           </div>
-          
+
           <div className="p-6 space-y-4">
             <button
               onClick={trackUser}
@@ -136,7 +167,11 @@ export default function ReportPage() {
             </button>
 
             <div className="rounded-xl overflow-hidden border-4 border-orange-100 relative z-0">
-              <MapContainer center={userLocation} zoom={15} style={{ height: "400px", width: "100%" }}>
+              <MapContainer
+                center={userLocation}
+                zoom={15}
+                style={{ height: "400px", width: "100%" }}
+              >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <Marker position={userLocation}>
                   <Popup>You are here</Popup>
@@ -149,13 +184,18 @@ export default function ReportPage() {
             {pin && (
               <div className="bg-orange-50 p-4 rounded-xl">
                 <p className="text-gray-800 font-semibold">
-                  ✅ Pin Placed: <span className="font-normal">Lat {pin.lat.toFixed(6)}, Lng {pin.lng.toFixed(6)}</span>
+                  ✅ Pin Placed:{" "}
+                  <span className="font-normal">
+                    Lat {pin.lat.toFixed(6)}, Lng {pin.lng.toFixed(6)}
+                  </span>
                 </p>
               </div>
             )}
-            
+
             {!pin && (
-              <p className="text-gray-500 text-sm italic">👆 Click anywhere on the map to drop a pin</p>
+              <p className="text-gray-500 text-sm italic">
+                👆 Click anywhere on the map to drop a pin
+              </p>
             )}
           </div>
         </div>
@@ -166,14 +206,18 @@ export default function ReportPage() {
             <Heart size={28} />
             <div>
               <h2 className="text-2xl font-bold">Step 2: Animal Details</h2>
-              <p className="text-orange-50 text-sm">Tell us about the animal you found</p>
+              <p className="text-orange-50 text-sm">
+                Tell us about the animal you found
+              </p>
             </div>
           </div>
-          
+
           <div className="p-6 space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block font-semibold text-gray-700 mb-2">Type of Animal</label>
+                <label className="block font-semibold text-gray-700 mb-2">
+                  Type of Animal
+                </label>
                 <select
                   className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-orange-400 focus:outline-none transition"
                   value={animalType}
@@ -185,9 +229,11 @@ export default function ReportPage() {
                   <option>Other</option>
                 </select>
               </div>
-              
+
               <div>
-                <label className="block font-semibold text-gray-700 mb-2">Number of Animals</label>
+                <label className="block font-semibold text-gray-700 mb-2">
+                  Number of Animals
+                </label>
                 <input
                   type="number"
                   min="1"
@@ -196,9 +242,11 @@ export default function ReportPage() {
                   onChange={(e) => setNumber(e.target.value)}
                 />
               </div>
-              
+
               <div>
-                <label className="block font-semibold text-gray-700 mb-2">Condition</label>
+                <label className="block font-semibold text-gray-700 mb-2">
+                  Condition
+                </label>
                 <select
                   className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-orange-400 focus:outline-none transition"
                   value={condition}
@@ -212,9 +260,11 @@ export default function ReportPage() {
                 </select>
               </div>
             </div>
-            
+
             <div>
-              <label className="block font-semibold text-gray-700 mb-2">Description of Animal</label>
+              <label className="block font-semibold text-gray-700 mb-2">
+                Description of Animal
+              </label>
               <textarea
                 className="w-full border-2 border-gray-200 p-4 rounded-xl focus:border-orange-400 focus:outline-none transition"
                 rows={4}
@@ -232,12 +282,16 @@ export default function ReportPage() {
             <FileText size={28} />
             <div>
               <h2 className="text-2xl font-bold">Step 3: Location Details</h2>
-              <p className="text-orange-50 text-sm">Help us find the exact spot</p>
+              <p className="text-orange-50 text-sm">
+                Help us find the exact spot
+              </p>
             </div>
           </div>
-          
+
           <div className="p-6">
-            <label className="block font-semibold text-gray-700 mb-2">Description of Place</label>
+            <label className="block font-semibold text-gray-700 mb-2">
+              Description of Place
+            </label>
             <textarea
               className="w-full border-2 border-gray-200 p-4 rounded-xl focus:border-orange-400 focus:outline-none transition"
               rows={4}
@@ -254,12 +308,16 @@ export default function ReportPage() {
             <AlertCircle size={28} />
             <div>
               <h2 className="text-2xl font-bold">Step 4: Your Information</h2>
-              <p className="text-orange-50 text-sm">Enter your email so we can record who submitted this report</p>
+              <p className="text-orange-50 text-sm">
+                Enter your email so we can record who submitted this report
+              </p>
             </div>
           </div>
 
           <div className="p-6">
-            <label className="block font-semibold text-gray-700 mb-2">Email</label>
+            <label className="block font-semibold text-gray-700 mb-2">
+              Email
+            </label>
             <input
               type="email"
               className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-orange-400 focus:outline-none transition"
@@ -275,22 +333,28 @@ export default function ReportPage() {
           <div className="bg-orange-500 text-white px-6 py-4 flex items-center gap-3">
             <Camera size={28} />
             <div>
-              <h2 className="text-2xl font-bold">Step 5: Upload Photo (Optional)</h2>
-              <p className="text-orange-50 text-sm">A picture helps us identify the animal</p>
+              <h2 className="text-2xl font-bold">
+                Step 5: Upload Photo (Optional)
+              </h2>
+              <p className="text-orange-50 text-sm">
+                A picture helps us identify the animal
+              </p>
             </div>
           </div>
-          
+
           <div className="p-6">
             <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-orange-400 transition">
-              <input 
-                type="file" 
-                accept="image/*" 
+              <input
+                type="file"
+                accept="image/*"
                 onChange={(e) => setPhoto(e.target.files[0])}
                 className="w-full"
                 id="photo-upload"
               />
               {photo && (
-                <p className="mt-3 text-green-600 font-semibold">✅ Photo selected: {photo.name}</p>
+                <p className="mt-3 text-green-600 font-semibold">
+                  ✅ Photo selected: {photo.name}
+                </p>
               )}
             </div>
           </div>
@@ -311,7 +375,9 @@ export default function ReportPage() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 text-center relative">
-            <h2 className="text-2xl font-bold text-orange-500 mb-4">🎉 Report Submitted!</h2>
+            <h2 className="text-2xl font-bold text-orange-500 mb-4">
+              🎉 Report Submitted!
+            </h2>
             <p className="text-gray-700 mb-4">
               Thank you for helping animals in need. 🐾 <br />
               You can view the status of your report in your dashboard.
