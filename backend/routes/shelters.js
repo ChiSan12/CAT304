@@ -168,4 +168,127 @@ router.put('/:shelterId', async (req, res) => {
   } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 });
 
+// 10. APPROVE ADOPTION REQUEST
+router.patch('/:shelterId/requests/:requestId/approve', async (req, res) => {
+  try {
+    const { shelterId, requestId } = req.params;
+
+    // Find the adopter who owns this adoption request
+    const adopter = await Adopter.findOne({
+      'adoptionRequests._id': requestId
+    });
+
+    if (!adopter) {
+      return res.status(404).json({
+        success: false,
+        message: 'Adoption request not found'
+      });
+    }
+
+    const request = adopter.adoptionRequests.id(requestId);
+
+    if (!request || request.status !== 'Pending') {
+      return res.json({
+        success: false,
+        message: 'Request is not pending'
+      });
+    }
+
+    // Confirm that pet belong to this shelter
+    const pet = await Pet.findById(request.petId);
+    if (!pet || pet.shelterId.toString() !== shelterId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized action'
+      });
+    }
+
+    // 1. Approve request
+    request.status = 'Approved';
+
+    // 2. Pet set as ddopted
+    pet.adoptionStatus = 'Adopted';
+
+    // 3. Reject same pet pending request
+    await Adopter.updateMany(
+      { 'adoptionRequests.petId': pet._id },
+      {
+        $set: {
+          'adoptionRequests.$[elem].status': 'Rejected'
+        }
+      },
+      {
+        arrayFilters: [
+          { 'elem.petId': pet._id, 'elem.status': 'Pending' }
+        ]
+      }
+    );
+
+    await adopter.save();
+    await pet.save();
+
+    res.json({
+      success: true,
+      message: 'Adoption request approved'
+    });
+
+  } catch (error) {
+    console.error('Approve Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to approve request'
+    });
+  }
+});
+
+// 11. REJECT ADOPTION REQUEST
+router.patch('/:shelterId/requests/:requestId/reject', async (req, res) => {
+  try {
+    const { shelterId, requestId } = req.params;
+
+    const adopter = await Adopter.findOne({
+      'adoptionRequests._id': requestId
+    });
+
+    if (!adopter) {
+      return res.status(404).json({
+        success: false,
+        message: 'Adoption request not found'
+      });
+    }
+
+    const request = adopter.adoptionRequests.id(requestId);
+
+    if (!request || request.status !== 'Pending') {
+      return res.json({
+        success: false,
+        message: 'Request is not pending'
+      });
+    }
+
+    const pet = await Pet.findById(request.petId);
+    if (!pet || pet.shelterId.toString() !== shelterId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized action'
+      });
+    }
+
+    request.status = 'Rejected';
+    await adopter.save();
+
+    res.json({
+      success: true,
+      message: 'Adoption request rejected'
+    });
+
+  } catch (error) {
+    console.error('Reject Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reject request'
+    });
+  }
+});
+
 module.exports = router;

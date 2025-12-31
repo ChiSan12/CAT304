@@ -24,24 +24,30 @@ export default function ShelterRequestPage() {
     fetchRequests();
   };
 
-  const handleRequestAction = async (adopterId, requestId, status, petId) => {
-    if (!petId) return alert("Error: Missing Pet ID");
-    try {
-      await fetch(
-        `http://localhost:5000/api/shelters/requests/${adopterId}/${requestId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status, petId }),
-        }
-      );
-      setTimeout(() => {
-        refreshData();
-      }, 500);
-    } catch (err) {
-      console.error(err);
+  const handleRequestAction = async (requestId, action) => {
+
+  if (action === "approve" && !window.confirm("Approve this request?")) return;
+  if (action === "reject" && !window.confirm("Reject this request?")) return;
+  
+  try {
+    const res = await fetch(
+      `http://localhost:5000/api/shelters/${SHELTER_ID}/requests/${requestId}/${action}`,
+      {
+        method: "PATCH",
+      }
+    );
+
+    const data = await res.json();
+    if (!data.success) {
+      alert(data.message || "Action failed");
+      return;
     }
-  };
+
+    refreshData();
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   useEffect(() => {
     if (SHELTER_ID) refreshData();
@@ -119,26 +125,14 @@ export default function ShelterRequestPage() {
                           <div className="flex gap-2">
                             <button
                               onClick={() =>
-                                handleRequestAction(
-                                  req.adopterId,
-                                  req.requestId,
-                                  "Approved",
-                                  req.petId
-                                )
-                              }
+                                handleRequestAction(req.requestId, "approve")}
                               className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors"
                             >
                               Approve
                             </button>
                             <button
                               onClick={() =>
-                                handleRequestAction(
-                                  req.adopterId,
-                                  req.requestId,
-                                  "Rejected",
-                                  req.petId
-                                )
-                              }
+                                handleRequestAction(req.requestId, "reject")}
                               className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
                             >
                               Reject
