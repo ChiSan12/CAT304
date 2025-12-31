@@ -137,15 +137,15 @@ export default function HomePage({ goTo }) {
           <div className="flex items-center gap-4">
             <Phone size={26} />
             <span className="font-medium">
-              +605-6632828 (Aileen)
+              +6016-5703369 
             </span>
           </div>
 
           <div className="flex items-start gap-4">
             <MapPin size={26} />
             <span className="font-medium leading-relaxed max-w-xl">
-              A-2-G, Galeri Klang Sentral, Jalan Klang Sentral 15/KU5,<br />
-              41050 Klang, Selangor, Malaysia.
+              A-2-G, Pet Found Us,<br />
+              Gelugor, Penang.
             </span>
           </div>
 

@@ -110,7 +110,7 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
 
   const getAIMatches = async () => {
     if (!user || !user.id) { 
-      const shouldLogin = window.confirm("Please login to use AI Matching! Would you like to go to the login page?");
+      const shouldLogin = window.confirm("Please login to use Smart Pet Matching! Would you like to go to the login page?");
       if (shouldLogin && onNavigateToLogin) {
         onNavigateToLogin();
       }

@@ -46,7 +46,7 @@ const adopterSchema = new mongoose.Schema({
     postalCode: { type: String }
   },
   
-  // === Adoption Preferences (for AI Matching) ===
+  // === Adoption Preferences (for Smart Pet Matching) ===
   preferences: {
     // Preferred pet characteristics
     preferredSize: { 
