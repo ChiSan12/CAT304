@@ -43,11 +43,10 @@ export default function ReportPage() {
   const [animalDesc, setAnimalDesc] = useState("");
   const [placeDesc, setPlaceDesc] = useState("");
   const [photo, setPhoto] = useState(null);
+  const [reporterEmail, setReporterEmail] = useState(""); // <-- Reporter email
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
-
-  
 
   // Track Me button function
   const trackUser = () => {
@@ -65,7 +64,7 @@ export default function ReportPage() {
   // Submit handler
   const handleSubmit = async () => {
     if (!pin) return alert("Place a pin on the map first!");
-    if (!animalDesc || !placeDesc || !animalType || !number || !condition)
+    if (!animalDesc || !placeDesc || !animalType || !number || !condition || !reporterEmail)
       return alert("Please fill in all the required fields!");
 
     const formData = new FormData();
@@ -76,6 +75,7 @@ export default function ReportPage() {
     formData.append("placeDesc", placeDesc);
     formData.append("pinLat", pin.lat);
     formData.append("pinLng", pin.lng);
+    formData.append("email", reporterEmail); // <-- send email for reportedBy
     if (photo) formData.append("photoUrl", photo);
 
     try {
@@ -91,6 +91,7 @@ export default function ReportPage() {
       setPlaceDesc("");
       setPhoto(null);
       setPin(null);
+      setReporterEmail("");
 
       // Show modal
       setShowModal(true);
@@ -247,12 +248,34 @@ export default function ReportPage() {
           </div>
         </div>
 
-        {/* Step 4: Photo Upload */}
+        {/* Step 4: Reporter Info */}
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="bg-orange-500 text-white px-6 py-4 flex items-center gap-3">
+            <AlertCircle size={28} />
+            <div>
+              <h2 className="text-2xl font-bold">Step 4: Your Information</h2>
+              <p className="text-orange-50 text-sm">Enter your email so we can record who submitted this report</p>
+            </div>
+          </div>
+
+          <div className="p-6">
+            <label className="block font-semibold text-gray-700 mb-2">Email</label>
+            <input
+              type="email"
+              className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-orange-400 focus:outline-none transition"
+              placeholder="your.email@example.com"
+              value={reporterEmail}
+              onChange={(e) => setReporterEmail(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Step 5: Photo Upload */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="bg-orange-500 text-white px-6 py-4 flex items-center gap-3">
             <Camera size={28} />
             <div>
-              <h2 className="text-2xl font-bold">Step 4: Upload Photo (Optional)</h2>
+              <h2 className="text-2xl font-bold">Step 5: Upload Photo (Optional)</h2>
               <p className="text-orange-50 text-sm">A picture helps us identify the animal</p>
             </div>
           </div>

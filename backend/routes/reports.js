@@ -2,22 +2,22 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const Report = require('../models/report');
+const Adopter = require('../models/adopter');
 
-// Optional file upload in memory
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// POST /api/reports
 router.post('/', upload.single('photoUrl'), async (req, res) => {
   try {
-    console.log("Body:", req.body);
-    console.log("File:", req.file);
+    const { animalType, number, condition, animalDesc, placeDesc, pinLat, pinLng, email } = req.body;
 
-    const { animalType, number, condition, animalDesc, placeDesc, pinLat, pinLng } = req.body;
-
-    if (!animalType || !number || !condition || !animalDesc || !placeDesc || !pinLat || !pinLng) {
+    if (!animalType || !number || !condition || !animalDesc || !placeDesc || !pinLat || !pinLng || !email) {
       return res.status(400).json({ message: "Missing required fields" });
     }
+
+    // Find the adopter by email (or any unique identifier)
+    const adopter = await Adopter.findOne({ email });
+    if (!adopter) return res.status(404).json({ message: "Adopter not found" });
 
     const report = new Report({
       animalType,
@@ -25,17 +25,17 @@ router.post('/', upload.single('photoUrl'), async (req, res) => {
       condition,
       animalDesc,
       placeDesc,
-      pin: {
-        lat: Number(pinLat),
-        lng: Number(pinLng),
-      },
-      photoUrl: req.file ? req.file.buffer : undefined, // optional
+      pin: { lat: Number(pinLat), lng: Number(pinLng) },
+      photoUrl: req.file ? req.file.buffer : undefined,
+      reportedBy: adopter._id, // fill automatically
     });
 
     await report.save();
 
-    // Send created report including timestamp
-    res.json({ message: "Report submitted successfully!", report });
+    const populatedReport = await Report.findById(report._id)
+      .populate('reportedBy', 'fullName email');
+
+    res.json({ message: "Report submitted successfully!", report: populatedReport });
 
   } catch (err) {
     console.error(err);
