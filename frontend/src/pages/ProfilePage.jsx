@@ -1,20 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { User, Mail, MapPin, Dog, Save, CheckCircle, Home, Phone, AlertCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect } from "react";
+import {
+  User,
+  Mail,
+  MapPin,
+  Dog,
+  Save,
+  CheckCircle,
+  Phone,
+  AlertCircle,
+} from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfilePage() {
-  const { user } = useAuth(); 
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  
+  const [message, setMessage] = useState({ type: "", text: "" });
 
   const [profile, setProfile] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: { street: '', city: '', state: '', postalCode: '' }
+    fullName: "",
+    email: "",
+    phone: "",
+    address: { street: "", city: "", state: "", postalCode: "" },
   });
 
   const [preferences, setPreferences] = useState({
@@ -24,27 +34,38 @@ export default function ProfilePage() {
     hasGarden: false,
     hasOtherPets: false,
     hasChildren: false,
-    experienceLevel: 'First-time'
+    experienceLevel: "First-time",
   });
 
   useEffect(() => {
+    if (!user) {
+      navigate("/login");
+    }
+
     const fetchProfile = async (id) => {
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:5000/api/adopters/${id}`);
+        const response = await fetch(
+          `http://localhost:5000/api/adopters/${id}`
+        );
         const data = await response.json();
-        
+
         if (data.success) {
           setProfile({
-            fullName: data.adopter.fullName || '',
-            email: data.adopter.email || '',
-            phone: data.adopter.phone?.replace(/^\+60/, '') || '',
-            address: data.adopter.address || { street: '', city: '', state: '', postalCode: '' }
+            fullName: data.adopter.fullName || "",
+            email: data.adopter.email || "",
+            phone: data.adopter.phone?.replace(/^\+60/, "") || "",
+            address: data.adopter.address || {
+              street: "",
+              city: "",
+              state: "",
+              postalCode: "",
+            },
           });
-          setPreferences(prev => data.adopter.preferences || prev); 
+          setPreferences((prev) => data.adopter.preferences || prev);
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error("Error fetching profile:", error);
       } finally {
         setLoading(false);
       }
@@ -61,61 +82,64 @@ export default function ProfilePage() {
     if (!user || !user.id) return;
 
     setSaving(true);
-    setMessage({ type: '', text: '' });
+    setMessage({ type: "", text: "" });
 
-    let finalPhone = '';
+    let finalPhone = "";
     if (profile.phone.trim()) {
-      const rawPhone = profile.phone.replace(/\D/g, '');
-      const normalizedPhone = rawPhone.startsWith('0') 
-        ? rawPhone.slice(1) 
+      const rawPhone = profile.phone.replace(/\D/g, "");
+      const normalizedPhone = rawPhone.startsWith("0")
+        ? rawPhone.slice(1)
         : rawPhone;
 
-    // Malaysian mobile number: must start with 1 and be 9 digits
-    if (!/^1\d{8}$/.test(normalizedPhone)) {
-      setMessage({
-        type: 'error',
-        text: 'Please enter a valid Malaysian mobile number'
-      });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      setSaving(false);
-      return;
-    }
+      // Malaysian mobile number: must start with 1 and be 9 digits
+      if (!/^1\d{8}$/.test(normalizedPhone)) {
+        setMessage({
+          type: "error",
+          text: "Please enter a valid Malaysian mobile number",
+        });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setSaving(false);
+        return;
+      }
       finalPhone = `+60${normalizedPhone}`;
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/adopters/${user.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullName: profile.fullName,
-          phone: finalPhone,
-          address: profile.address,
-          preferences: preferences
-        })
-      });
+      const response = await fetch(
+        `http://localhost:5000/api/adopters/${user.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fullName: profile.fullName,
+            phone: finalPhone,
+            address: profile.address,
+            preferences: preferences,
+          }),
+        }
+      );
 
       const data = await response.json();
-      
+
       if (data.success) {
-        setMessage({ 
-          type: 'success', 
-          text: 'Profile updated successfully! ' 
+        setMessage({
+          type: "success",
+          text: "Profile updated successfully! ",
         });
 
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        
-        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        setTimeout(() => setMessage({ type: "", text: "" }), 3000);
       } else {
-        setMessage({ 
-          type: 'error', 
-          text: data.message || 'Update failed' 
+        setMessage({
+          type: "error",
+          text: data.message || "Update failed",
         });
       }
     } catch (error) {
-      setMessage({ 
-        type: 'error', 
-        text: 'Network error. Please try again.' 
+      setMessage({
+        type: "error",
+        text: "Network error. Please try again.",
       });
     } finally {
       setSaving(false);
@@ -123,11 +147,11 @@ export default function ProfilePage() {
   };
 
   const toggleArrayPreference = (key, value) => {
-    setPreferences(prev => ({
+    setPreferences((prev) => ({
       ...prev,
       [key]: prev[key].includes(value)
-        ? prev[key].filter(item => item !== value)
-        : [...prev[key], value]
+        ? prev[key].filter((item) => item !== value)
+        : [...prev[key], value],
     }));
   };
 
@@ -158,7 +182,9 @@ export default function ProfilePage() {
             </div>
             <div>
               <h1 className="text-3xl font-bold">My Profile</h1>
-              <p className="text-white/90 mt-1">Manage your account and preferences</p>
+              <p className="text-white/90 mt-1">
+                Manage your account and preferences
+              </p>
             </div>
           </div>
         </div>
@@ -169,13 +195,13 @@ export default function ProfilePage() {
         {message.text && (
           <div
             className={`mb-6 p-4 rounded-xl flex items-center gap-3 shadow-sm ${
-              message.type === 'success'
-                ? 'bg-green-50 border-2 border-green-200'
-                : 'bg-red-50 border-2 border-red-200'
+              message.type === "success"
+                ? "bg-green-50 border-2 border-green-200"
+                : "bg-red-50 border-2 border-red-200"
             }`}
           >
             {/* Use different icons for success and error */}
-            {message.type === 'success' ? (
+            {message.type === "success" ? (
               <CheckCircle className="w-5 h-5 text-green-600" />
             ) : (
               <AlertCircle className="w-5 h-5 text-red-600" />
@@ -183,7 +209,7 @@ export default function ProfilePage() {
 
             <p
               className={`text-sm font-medium ${
-                message.type === 'success' ? 'text-green-800' : 'text-red-800'
+                message.type === "success" ? "text-green-800" : "text-red-800"
               }`}
             >
               {message.text}
@@ -198,7 +224,9 @@ export default function ProfilePage() {
               <div className="p-3 bg-orange-100 rounded-xl">
                 <User className="w-6 h-6 text-[#FF8C42]" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Personal Info</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Personal Info
+              </h2>
             </div>
 
             <div className="space-y-5">
@@ -209,7 +237,12 @@ export default function ProfilePage() {
                 <input
                   type="text"
                   value={profile.fullName}
-                  onChange={(e) => setProfile(prev => ({ ...prev, fullName: e.target.value }))}
+                  onChange={(e) =>
+                    setProfile((prev) => ({
+                      ...prev,
+                      fullName: e.target.value,
+                    }))
+                  }
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
                   placeholder="Your full name"
                 />
@@ -221,9 +254,13 @@ export default function ProfilePage() {
                 </label>
                 <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl">
                   <Mail className="w-5 h-5 text-gray-400" />
-                  <span className="text-gray-700 font-medium">{profile.email}</span>
+                  <span className="text-gray-700 font-medium">
+                    {profile.email}
+                  </span>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">📧 Email cannot be changed</p>
+                <p className="text-xs text-gray-500 mt-2">
+                  📧 Email cannot be changed
+                </p>
               </div>
 
               <div>
@@ -244,7 +281,7 @@ export default function ProfilePage() {
                     maxLength={10}
                     value={profile.phone}
                     onChange={(e) =>
-                      setProfile(prev => ({ ...prev, phone: e.target.value }))
+                      setProfile((prev) => ({ ...prev, phone: e.target.value }))
                     }
                     className="flex-1 bg-transparent border-0 pl-3 pr-4 py-3 focus:outline-none focus:ring-0"
                     placeholder="123456789"
@@ -271,10 +308,12 @@ export default function ProfilePage() {
                 <input
                   type="text"
                   value={profile.address.street}
-                  onChange={(e) => setProfile(prev => ({
-                    ...prev,
-                    address: { ...prev.address, street: e.target.value }
-                  }))}
+                  onChange={(e) =>
+                    setProfile((prev) => ({
+                      ...prev,
+                      address: { ...prev.address, street: e.target.value },
+                    }))
+                  }
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
                   placeholder="123 Main Street"
                 />
@@ -288,10 +327,12 @@ export default function ProfilePage() {
                   <input
                     type="text"
                     value={profile.address.city}
-                    onChange={(e) => setProfile(prev => ({
-                      ...prev,
-                      address: { ...prev.address, city: e.target.value }
-                    }))}
+                    onChange={(e) =>
+                      setProfile((prev) => ({
+                        ...prev,
+                        address: { ...prev.address, city: e.target.value },
+                      }))
+                    }
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
                     placeholder="Penang"
                   />
@@ -304,10 +345,12 @@ export default function ProfilePage() {
                   <input
                     type="text"
                     value={profile.address.state}
-                    onChange={(e) => setProfile(prev => ({
-                      ...prev,
-                      address: { ...prev.address, state: e.target.value }
-                    }))}
+                    onChange={(e) =>
+                      setProfile((prev) => ({
+                        ...prev,
+                        address: { ...prev.address, state: e.target.value },
+                      }))
+                    }
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
                     placeholder="Pulau Pinang"
                   />
@@ -321,10 +364,12 @@ export default function ProfilePage() {
                 <input
                   type="text"
                   value={profile.address.postalCode}
-                  onChange={(e) => setProfile(prev => ({
-                    ...prev,
-                    address: { ...prev.address, postalCode: e.target.value }
-                  }))}
+                  onChange={(e) =>
+                    setProfile((prev) => ({
+                      ...prev,
+                      address: { ...prev.address, postalCode: e.target.value },
+                    }))
+                  }
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
                   placeholder="10100"
                 />
@@ -339,7 +384,9 @@ export default function ProfilePage() {
             <div className="p-3 bg-orange-100 rounded-xl">
               <Dog className="w-6 h-6 text-[#FF8C42]" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">Adoption Preferences</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Adoption Preferences
+            </h2>
           </div>
 
           {/* Preferred Size */}
@@ -348,14 +395,14 @@ export default function ProfilePage() {
               Preferred Pet Size
             </label>
             <div className="flex flex-wrap gap-3">
-              {['Small', 'Medium', 'Large'].map(size => (
+              {["Small", "Medium", "Large"].map((size) => (
                 <button
                   key={size}
-                  onClick={() => toggleArrayPreference('preferredSize', size)}
+                  onClick={() => toggleArrayPreference("preferredSize", size)}
                   className={`px-6 py-3 rounded-xl border-2 font-medium transition-all ${
                     preferences.preferredSize.includes(size)
-                      ? 'bg-gradient-to-r from-[#FF8C42] to-[#FFA726] border-[#FF8C42] text-white shadow-lg'
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-[#FF8C42]'
+                      ? "bg-gradient-to-r from-[#FF8C42] to-[#FFA726] border-[#FF8C42] text-white shadow-lg"
+                      : "bg-white border-gray-300 text-gray-700 hover:border-[#FF8C42]"
                   }`}
                 >
                   {size}
@@ -370,14 +417,14 @@ export default function ProfilePage() {
               Preferred Age
             </label>
             <div className="flex flex-wrap gap-3">
-              {['Puppy', 'Young', 'Adult', 'Senior'].map(age => (
+              {["Puppy", "Young", "Adult", "Senior"].map((age) => (
                 <button
                   key={age}
-                  onClick={() => toggleArrayPreference('preferredAge', age)}
+                  onClick={() => toggleArrayPreference("preferredAge", age)}
                   className={`px-6 py-3 rounded-xl border-2 font-medium transition-all ${
                     preferences.preferredAge.includes(age)
-                      ? 'bg-gradient-to-r from-[#FF8C42] to-[#FFA726] border-[#FF8C42] text-white shadow-lg'
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-[#FF8C42]'
+                      ? "bg-gradient-to-r from-[#FF8C42] to-[#FFA726] border-[#FF8C42] text-white shadow-lg"
+                      : "bg-white border-gray-300 text-gray-700 hover:border-[#FF8C42]"
                   }`}
                 >
                   {age}
@@ -392,19 +439,23 @@ export default function ProfilePage() {
               Preferred Temperament
             </label>
             <div className="flex flex-wrap gap-3">
-              {['Calm', 'Playful', 'Energetic', 'Friendly', 'Independent'].map(temp => (
-                <button
-                  key={temp}
-                  onClick={() => toggleArrayPreference('preferredTemperament', temp)}
-                  className={`px-6 py-3 rounded-xl border-2 font-medium transition-all ${
-                    preferences.preferredTemperament.includes(temp)
-                      ? 'bg-gradient-to-r from-[#FF8C42] to-[#FFA726] border-[#FF8C42] text-white shadow-lg'
-                      : 'bg-white border-gray-300 text-gray-700 hover:border-[#FF8C42]'
-                  }`}
-                >
-                  {temp}
-                </button>
-              ))}
+              {["Calm", "Playful", "Energetic", "Friendly", "Independent"].map(
+                (temp) => (
+                  <button
+                    key={temp}
+                    onClick={() =>
+                      toggleArrayPreference("preferredTemperament", temp)
+                    }
+                    className={`px-6 py-3 rounded-xl border-2 font-medium transition-all ${
+                      preferences.preferredTemperament.includes(temp)
+                        ? "bg-gradient-to-r from-[#FF8C42] to-[#FFA726] border-[#FF8C42] text-white shadow-lg"
+                        : "bg-white border-gray-300 text-gray-700 hover:border-[#FF8C42]"
+                    }`}
+                  >
+                    {temp}
+                  </button>
+                )
+              )}
             </div>
           </div>
 
@@ -415,21 +466,28 @@ export default function ProfilePage() {
             </label>
             <div className="space-y-3">
               {[
-                { key: 'hasGarden', label: '🏡 I have a garden/yard' },
-                { key: 'hasOtherPets', label: '🐾 I have other pets' },
-                { key: 'hasChildren', label: '👶 I have children at home' }
-              ].map(item => (
-                <label key={item.key} className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-orange-50 transition-colors">
+                { key: "hasGarden", label: "🏡 I have a garden/yard" },
+                { key: "hasOtherPets", label: "🐾 I have other pets" },
+                { key: "hasChildren", label: "👶 I have children at home" },
+              ].map((item) => (
+                <label
+                  key={item.key}
+                  className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-orange-50 transition-colors"
+                >
                   <input
                     type="checkbox"
                     checked={preferences[item.key]}
-                    onChange={(e) => setPreferences(prev => ({
-                      ...prev,
-                      [item.key]: e.target.checked
-                    }))}
+                    onChange={(e) =>
+                      setPreferences((prev) => ({
+                        ...prev,
+                        [item.key]: e.target.checked,
+                      }))
+                    }
                     className="w-5 h-5 text-[#FF8C42] border-2 border-gray-300 rounded focus:outline-none focus:ring-0"
                   />
-                  <span className="text-gray-700 font-medium">{item.label}</span>
+                  <span className="text-gray-700 font-medium">
+                    {item.label}
+                  </span>
                 </label>
               ))}
             </div>
@@ -442,10 +500,12 @@ export default function ProfilePage() {
             </label>
             <select
               value={preferences.experienceLevel}
-              onChange={(e) => setPreferences(prev => ({
-                ...prev,
-                experienceLevel: e.target.value
-              }))}
+              onChange={(e) =>
+                setPreferences((prev) => ({
+                  ...prev,
+                  experienceLevel: e.target.value,
+                }))
+              }
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all font-medium"
             >
               <option value="First-time">First-time owner</option>
@@ -474,8 +534,8 @@ export default function ProfilePage() {
               </>
             )}
           </button>
-      </div>
         </div>
+      </div>
     </div>
   );
 }

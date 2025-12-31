@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Heart,
   PawPrint,
@@ -6,28 +6,34 @@ import {
   CheckCircle,
   XCircle,
   Calendar,
-  TrendingUp
-} from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+  TrendingUp,
+} from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function MyDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview'); // overview, requests, adopted
-  
+  const [activeTab, setActiveTab] = useState("overview"); // overview, requests, adopted
+
   const [dashboardData, setDashboardData] = useState({
     stats: {
       totalRequests: 0,
       pendingRequests: 0,
       approvedRequests: 0,
       rejectedRequests: 0,
-      adoptedPets: 0
+      adoptedPets: 0,
     },
     requests: [],
-    adoptedPets: []
+    adoptedPets: [],
   });
 
   useEffect(() => {
+    if (!user) {
+      navigate("/login");
+    }
+
     if (user?.id) loadDashboard();
   }, [user]);
 
@@ -47,38 +53,41 @@ export default function MyDashboard() {
         // 2. THE FIX: Treat 'Approved' requests as Adopted pets
         // This takes any request marked 'Approved' and adds it to the adopted list
         const approvedAsAdopted = requests
-          .filter(r => r.status === 'Approved')
-          .map(r => ({
+          .filter((r) => r.status === "Approved")
+          .map((r) => ({
             petId: r.petId,
             adoptionDate: r.requestDate, // Use request date since adoption date isn't set yet
-            _id: r._id
+            _id: r._id,
           }));
 
         // Combine the actual database adopted pets with the approved requests
         // Using a Map to remove duplicates based on petId, just in case
         const uniqueAdoptedMap = new Map();
-        [...dbAdopted, ...approvedAsAdopted].forEach(item => {
-            if (item.petId?._id) {
-                uniqueAdoptedMap.set(item.petId._id, item);
-            }
+        [...dbAdopted, ...approvedAsAdopted].forEach((item) => {
+          if (item.petId?._id) {
+            uniqueAdoptedMap.set(item.petId._id, item);
+          }
         });
-        
+
         const allAdopted = Array.from(uniqueAdoptedMap.values());
 
         setDashboardData({
           stats: {
             totalRequests: requests.length,
-            pendingRequests: requests.filter(r => r.status === 'Pending').length,
-            approvedRequests: requests.filter(r => r.status === 'Approved').length,
-            rejectedRequests: requests.filter(r => r.status === 'Rejected').length,
-            adoptedPets: allAdopted.length // Update the count
+            pendingRequests: requests.filter((r) => r.status === "Pending")
+              .length,
+            approvedRequests: requests.filter((r) => r.status === "Approved")
+              .length,
+            rejectedRequests: requests.filter((r) => r.status === "Rejected")
+              .length,
+            adoptedPets: allAdopted.length, // Update the count
           },
           requests: requests,
-          adoptedPets: allAdopted // Update the list
+          adoptedPets: allAdopted, // Update the list
         });
       }
     } catch (err) {
-      console.error('Dashboard Error:', err);
+      console.error("Dashboard Error:", err);
     } finally {
       setLoading(false);
     }
@@ -103,7 +112,6 @@ export default function MyDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <StatCard
@@ -142,33 +150,35 @@ export default function MyDashboard() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="flex border-b border-gray-200">
             <TabButton
-              active={activeTab === 'overview'}
-              onClick={() => setActiveTab('overview')}
+              active={activeTab === "overview"}
+              onClick={() => setActiveTab("overview")}
               label="Overview"
             />
             <TabButton
-              active={activeTab === 'requests'}
-              onClick={() => setActiveTab('requests')}
+              active={activeTab === "requests"}
+              onClick={() => setActiveTab("requests")}
               label={`Requests (${dashboardData.requests.length})`}
             />
             <TabButton
-              active={activeTab === 'adopted'}
-              onClick={() => setActiveTab('adopted')}
+              active={activeTab === "adopted"}
+              onClick={() => setActiveTab("adopted")}
               label={`Adopted Pets (${dashboardData.adoptedPets.length})`}
             />
           </div>
 
           {/* Tab Content */}
           <div className="p-6">
-            {activeTab === 'overview' && (
-              <OverviewTab data={dashboardData} />
+            {activeTab === "overview" && <OverviewTab data={dashboardData} />}
+
+            {activeTab === "requests" && (
+              <RequestsTab
+                requests={dashboardData.requests}
+                onRefresh={loadDashboard}
+                adopterId={user.id}
+              />
             )}
-            
-            {activeTab === 'requests' && (
-              <RequestsTab requests={dashboardData.requests} onRefresh={loadDashboard} adopterId={user.id} />
-            )}
-            
-            {activeTab === 'adopted' && (
+
+            {activeTab === "adopted" && (
               <AdoptedPetsTab pets={dashboardData.adoptedPets} />
             )}
           </div>
@@ -182,11 +192,11 @@ export default function MyDashboard() {
 
 function StatCard({ icon: Icon, label, value, color }) {
   const colors = {
-    orange: 'bg-orange-100 text-orange-600',
-    yellow: 'bg-yellow-100 text-yellow-600',
-    green: 'bg-green-100 text-green-600',
-    red: 'bg-red-100 text-red-600',
-    purple: 'bg-purple-100 text-purple-600'
+    orange: "bg-orange-100 text-orange-600",
+    yellow: "bg-yellow-100 text-yellow-600",
+    green: "bg-green-100 text-green-600",
+    red: "bg-red-100 text-red-600",
+    purple: "bg-purple-100 text-purple-600",
   };
 
   return (
@@ -205,9 +215,7 @@ function TabButton({ active, onClick, label }) {
     <button
       onClick={onClick}
       className={`flex-1 px-6 py-4 font-medium transition-colors ${
-        active
-          ? 'bg-[#FF8C42] text-white'
-          : 'text-gray-600 hover:bg-gray-50'
+        active ? "bg-[#FF8C42] text-white" : "text-gray-600 hover:bg-gray-50"
       }`}
     >
       {label}
@@ -237,18 +245,28 @@ function OverviewTab({ data }) {
         <>
           {/* Recent Requests */}
           <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Recent Requests</h4>
+            <h4 className="font-semibold text-gray-900 mb-3">
+              Recent Requests
+            </h4>
             <div className="space-y-2">
               {data.requests.slice(0, 3).map((req, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
                   <div className="flex items-center gap-3">
                     <img
-                      src={req.petId?.images?.[0]?.url || 'https://via.placeholder.com/50'}
+                      src={
+                        req.petId?.images?.[0]?.url ||
+                        "https://via.placeholder.com/50"
+                      }
                       alt={req.petId?.name}
                       className="w-12 h-12 rounded-lg object-cover"
                     />
                     <div>
-                      <p className="font-medium text-gray-900">{req.petId?.name || 'Unknown'}</p>
+                      <p className="font-medium text-gray-900">
+                        {req.petId?.name || "Unknown"}
+                      </p>
                       <p className="text-sm text-gray-500">
                         {new Date(req.requestDate).toLocaleDateString()}
                       </p>
@@ -263,18 +281,29 @@ function OverviewTab({ data }) {
           {/* Adopted Pets */}
           {data.adoptedPets.length > 0 && (
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Your Adopted Pets</h4>
+              <h4 className="font-semibold text-gray-900 mb-3">
+                Your Adopted Pets
+              </h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {data.adoptedPets.map((item, idx) => (
-                  <div key={idx} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div
+                    key={idx}
+                    className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
                     <img
-                      src={item.petId?.images?.[0]?.url || 'https://via.placeholder.com/200'}
+                      src={
+                        item.petId?.images?.[0]?.url ||
+                        "https://via.placeholder.com/200"
+                      }
                       alt={item.petId?.name}
                       className="w-full h-32 object-cover rounded-lg mb-3"
                     />
-                    <h5 className="font-semibold text-gray-900">{item.petId?.name}</h5>
+                    <h5 className="font-semibold text-gray-900">
+                      {item.petId?.name}
+                    </h5>
                     <p className="text-sm text-gray-500">
-                      Adopted: {new Date(item.adoptionDate).toLocaleDateString()}
+                      Adopted:{" "}
+                      {new Date(item.adoptionDate).toLocaleDateString()}
                     </p>
                   </div>
                 ))}
@@ -289,11 +318,11 @@ function OverviewTab({ data }) {
 
 function RequestsTab({ requests, onRefresh, adopterId }) {
   const cancelRequest = async (petId) => {
-    if (!window.confirm('Cancel this request?')) return;
+    if (!window.confirm("Cancel this request?")) return;
 
     await fetch(
-    `http://localhost:5000/api/adopters/${adopterId}/request/${petId}`,
-    { method: 'DELETE' }
+      `http://localhost:5000/api/adopters/${adopterId}/request/${petId}`,
+      { method: "DELETE" }
     );
 
     onRefresh();
@@ -311,15 +340,22 @@ function RequestsTab({ requests, onRefresh, adopterId }) {
   return (
     <div className="space-y-4">
       {requests.map((req, idx) => (
-        <div key={idx} className="flex items-center justify-between p-4 border rounded-lg hover:shadow-sm transition-shadow">
+        <div
+          key={idx}
+          className="flex items-center justify-between p-4 border rounded-lg hover:shadow-sm transition-shadow"
+        >
           <div className="flex items-center gap-4">
             <img
-              src={req.petId?.images?.[0]?.url || 'https://via.placeholder.com/80'}
+              src={
+                req.petId?.images?.[0]?.url || "https://via.placeholder.com/80"
+              }
               alt={req.petId?.name}
               className="w-20 h-20 rounded-lg object-cover"
             />
             <div>
-              <h4 className="font-semibold text-gray-900 text-lg">{req.petId?.name || 'Unknown Pet'}</h4>
+              <h4 className="font-semibold text-gray-900 text-lg">
+                {req.petId?.name || "Unknown Pet"}
+              </h4>
               <p className="text-sm text-gray-600">
                 {req.petId?.species} • {req.petId?.breed}
               </p>
@@ -331,10 +367,10 @@ function RequestsTab({ requests, onRefresh, adopterId }) {
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <StatusBadge status={req.status} />
-            {req.status === 'Pending' && (
+            {req.status === "Pending" && (
               <button
                 onClick={() => cancelRequest(req.petId._id)}
                 className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -362,20 +398,29 @@ function AdoptedPetsTab({ pets }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {pets.map((item, idx) => (
-        <div key={idx} className="border rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
+        <div
+          key={idx}
+          className="border rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+        >
           <img
-            src={item.petId?.images?.[0]?.url || 'https://via.placeholder.com/400'}
+            src={
+              item.petId?.images?.[0]?.url || "https://via.placeholder.com/400"
+            }
             alt={item.petId?.name}
             className="w-full h-48 object-cover"
           />
           <div className="p-5">
-            <h4 className="text-xl font-bold text-gray-900 mb-2">{item.petId?.name}</h4>
+            <h4 className="text-xl font-bold text-gray-900 mb-2">
+              {item.petId?.name}
+            </h4>
             <p className="text-gray-600 mb-3">
               {item.petId?.species} • {item.petId?.size}
             </p>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
               <Calendar className="w-4 h-4" />
-              <span>Adopted: {new Date(item.adoptionDate).toLocaleDateString()}</span>
+              <span>
+                Adopted: {new Date(item.adoptionDate).toLocaleDateString()}
+              </span>
             </div>
             <button className="w-full bg-[#FF8C42] hover:bg-[#e67e3b] text-white font-medium py-2 rounded-lg transition-colors">
               View Care Plan
@@ -389,13 +434,15 @@ function AdoptedPetsTab({ pets }) {
 
 function StatusBadge({ status }) {
   const styles = {
-    Pending: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    Approved: 'bg-green-100 text-green-700 border-green-200',
-    Rejected: 'bg-red-100 text-red-700 border-red-200'
+    Pending: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    Approved: "bg-green-100 text-green-700 border-green-200",
+    Rejected: "bg-red-100 text-red-700 border-red-200",
   };
 
   return (
-    <span className={`px-3 py-1 text-sm font-medium rounded-full border ${styles[status]}`}>
+    <span
+      className={`px-3 py-1 text-sm font-medium rounded-full border ${styles[status]}`}
+    >
       {status}
     </span>
   );

@@ -8,7 +8,7 @@ const LoginPage = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false); // Toggle for Shelter/Adopter login
+  const [isAdmin, setIsAdmin] = useState(true); // Toggle for Shelter/Adopter login
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -50,7 +50,7 @@ const LoginPage = () => {
 
         login(userData);
 
-        navigate("/");
+        navigate("/admin/overview");
       } else {
         setError(
           data.message || "Login failed. Please check your credentials."

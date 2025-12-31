@@ -1,10 +1,10 @@
 import React from "react";
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin } from "lucide-react";
+import { NavLink } from "react-router-dom";
 
 export default function HomePage({ goTo }) {
   return (
     <div className="w-full">
-
       <section
         className="relative h-[100vh] bg-cover bg-center"
         style={{
@@ -30,20 +30,20 @@ export default function HomePage({ goTo }) {
             </p>
 
             <div className="mt-8 flex gap-4">
-            <button
-              onClick={() => goTo('browse')}
-              className="px-8 py-4 bg-gray-300 text-gray-900 text-base rounded-lg font-bold hover:bg-gray-200 transition"
-            >
-              🐾 Find a Pet
-            </button>
+              <NavLink
+                to="/browse"
+                className="px-8 py-4 bg-gray-300 text-gray-900 text-base rounded-lg font-bold hover:bg-gray-200 transition"
+              >
+                🐾 Find a Pet
+              </NavLink>
 
-            <button
-              onClick={() => goTo('report')}
-              className="px-8 py-4 bg-yellow-400 text-gray-900 text-base rounded-xl font-bold hover:bg-yellow-500 transition"
-            >
-              📍 Report a Stray
-            </button>
-          </div>
+              <NavLink
+                to="/report"
+                className="px-8 py-4 bg-yellow-400 text-gray-900 text-base rounded-xl font-bold hover:bg-yellow-500 transition"
+              >
+                📍 Report a Stray
+              </NavLink>
+            </div>
           </div>
         </div>
       </section>
@@ -51,9 +51,7 @@ export default function HomePage({ goTo }) {
       {/* ================= WHAT WE DO ================= */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-gray-800">
-            What We Do
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-800">What We Do</h2>
 
           <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
             PET Found Us is a smart pet rescue & rehoming platform for safer,
@@ -83,9 +81,7 @@ export default function HomePage({ goTo }) {
 
       {/* ================= COMMUNITY IMPACT ================= */}
       <section className="py-20 bg-orange-50 text-center">
-        <h2 className="text-3xl font-bold text-gray-800">
-          Why It Matters
-        </h2>
+        <h2 className="text-3xl font-bold text-gray-800">Why It Matters</h2>
 
         <p className="mt-6 max-w-5xl mx-auto text-xl text-gray-700">
           Thousands of stray animals face neglect and abandonment every year.
@@ -102,9 +98,7 @@ export default function HomePage({ goTo }) {
 
       {/* ================= HOW IT WORKS ================= */}
       <section className="py-20 bg-white text-center">
-        <h2 className="text-3xl font-bold text-gray-800">
-          How It Works
-        </h2>
+        <h2 className="text-3xl font-bold text-gray-800">How It Works</h2>
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-5 gap-4 max-w-6xl mx-auto text-xl">
           <Step text="Create an account" />
@@ -115,48 +109,42 @@ export default function HomePage({ goTo }) {
         </div>
       </section>
 
-      {/* =======FOOTER========== */ }
+      {/* =======FOOTER========== */}
       <footer className="bg-gray-900 text-white py-20">
-      <div className="max-w-4xl mx-auto px-6 flex flex-col items-center text-center">
+        <div className="max-w-4xl mx-auto px-6 flex flex-col items-center text-center">
+          {/* TITLE */}
+          <h2 className="text-xl md:text-2xl font-bold mb-10 tracking-wide">
+            CONTACT US
+          </h2>
 
-        {/* TITLE */}
-        <h2 className="text-xl md:text-2xl font-bold mb-10 tracking-wide">
-          CONTACT US
-        </h2>
+          {/* CONTACT INFO */}
+          <div className="space-y-6 text-sm md:text-base text-left">
+            <div className="flex items-center gap-4">
+              <Mail size={26} />
+              <span className="font-medium">admin@petfoundus.com</span>
+            </div>
 
-        {/* CONTACT INFO */}
-        <div className="space-y-6 text-sm md:text-base text-left">
+            <div className="flex items-center gap-4">
+              <Phone size={26} />
+              <span className="font-medium">+60165703369</span>
+            </div>
 
-          <div className="flex items-center gap-4">
-            <Mail size={26} />
-            <span className="font-medium">
-              admin@petfoundus.com
-            </span>
+            <div className="flex items-start gap-4">
+              <MapPin size={26} />
+              <span className="font-medium leading-relaxed max-w-xl">
+                A-2-G, Pet Found Us,
+                <br />
+                Gelugor, Penang.
+              </span>
+            </div>
           </div>
-
-          <div className="flex items-center gap-4">
-            <Phone size={26} />
-            <span className="font-medium">
-              +60165703369 
-            </span>
-          </div>
-
-          <div className="flex items-start gap-4">
-            <MapPin size={26} />
-            <span className="font-medium leading-relaxed max-w-xl">
-              A-2-G, Pet Found Us,<br />
-              Gelugor, Penang.
-            </span>
-          </div>
-
         </div>
-      </div>
 
-      {/* COPYRIGHT */}
-      <p className="text-center text-sm text-gray-400 mt-16">
-        © 2025 PET Found Us. All Rights Reserved.
-      </p>
-    </footer>
+        {/* COPYRIGHT */}
+        <p className="text-center text-sm text-gray-400 mt-16">
+          © 2025 PET Found Us. All Rights Reserved.
+        </p>
+      </footer>
     </div>
   );
 }

@@ -1,71 +1,80 @@
 /* --- 1. Header Styles (Navigation Bar) --- */
 .header-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 8%;
-    background: linear-gradient(135deg, #FFF4E6 0%, #FFE5CC 100%);
-    box-shadow: 0 2px 12px rgba(255, 140, 0, 0.15);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 8%;
+  background: linear-gradient(135deg, #fff4e6 0%, #ffe5cc 100%);
+  box-shadow: 0 2px 12px rgba(255, 140, 0, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 49;
+  backdrop-filter: blur(10px);
 }
 
 .logo {
-    font-size: 1.8em;
-    font-weight: 800;
-    background: linear-gradient(135deg, #FF8C42 0%, #FFA726 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    letter-spacing: -0.5px;
+  font-size: 1.8em;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff8c42 0%, #ffa726 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: -0.5px;
 }
 
 .header-nav nav {
-    display: flex;
-    gap: 8px;
-    align-items: center;
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .nav-button {
-    padding: 10px 20px;
-    background: transparent;
-    border: none;
-    color: #4A5568;
-    font-size: 0.9em;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    position: relative;
+  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  color: #4a5568;
+  font-size: 0.9em;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
 }
 
-.nav-button:hover {
-    background-color: rgba(255, 140, 0, 0.15);
-    color: #FF8C42;
-    transform: translateY(-1px);
+.nav-button:hover,
+.nav-button.active {
+  background-color: rgba(255, 140, 0, 0.15);
+  color: #ff8c42;
+  transform: translateY(-1px);
 }
 
 .nav-button.active-link {
-    background: linear-gradient(135deg, #FF8C42 0%, #FFA726 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
+  background: linear-gradient(135deg, #ff8c42 0%, #ffa726 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
 }
 
 .nav-button.active-link::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 30px;
-    height: 3px;
-    background: #FF8C42;
-    border-radius: 2px;
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 3px;
+  background: #ff8c42;
+  border-radius: 2px;
+}
+
+.sidebar-nav-button {
+  @apply flex items-center gap-3 w-full p-3 rounded-lg transition-colors text-gray-600 hover:bg-gray-50;
+}
+
+.sidebar-nav-button.active {
+  @apply bg-orange-100 text-orange-600 font-bold;
 }
