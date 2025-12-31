@@ -130,14 +130,14 @@ export default function HomePage({ goTo }) {
           <div className="flex items-center gap-4">
             <Mail size={26} />
             <span className="font-medium">
-              petfoundus@gmail.com
+              admin@petfoundus.com
             </span>
           </div>
 
           <div className="flex items-center gap-4">
             <Phone size={26} />
             <span className="font-medium">
-              +6016-5703369 
+              +60165703369 
             </span>
           </div>
 
