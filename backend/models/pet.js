@@ -181,4 +181,4 @@ petSchema.methods.getSummary = function() {
   };
 };
 
-module.exports = mongoose.model('Pet', petSchema);
+module.exports = mongoose.models.Pet || mongoose.model('Pet', petSchema);

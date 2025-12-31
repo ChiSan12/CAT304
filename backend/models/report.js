@@ -10,12 +10,18 @@ const reportSchema = new mongoose.Schema({
     lat: { type: Number, required: true },
     lng: { type: Number, required: true },
   },
-  photoUrl: { type: Buffer }, // optional
+  photoUrl: { type: Buffer }, // stored as buffer
   reportedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Adopter',
-    required: true, // ensures we always have an adopter
+    required: true,
+  },
+  // --- ADDED THIS FIELD ---
+  status: {
+    type: String,
+    enum: ['Pending', 'Investigating', 'Rescued', 'Rejected'],
+    default: 'Pending'
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Report', reportSchema);
+module.exports = mongoose.models.Report || mongoose.model('Report', reportSchema);

@@ -153,4 +153,4 @@ adopterSchema.methods.getPublicProfile = function() {
   };
 };
 
-module.exports = mongoose.model('Adopter', adopterSchema);
+module.exports = mongoose.models.Adopter || mongoose.model('Adopter', adopterSchema);
