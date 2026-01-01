@@ -50,6 +50,14 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
     temperament: 'All'
   });
 
+  const prefs = user?.preferences || {};
+
+  const isProfileComplete =
+    prefs.preferredSize?.length > 0 &&
+    prefs.preferredTemperament?.length > 0 &&
+    prefs.preferredAge?.length > 0 &&
+    !!prefs.experienceLevel;
+
   // Save selectedPet to storage
   useEffect(() => {
     if (selectedPet) {
@@ -115,35 +123,20 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
 
   //  Improved Smart Matching with Preferences Check
   const getAIMatches = async () => {
-    if (!user || !user.id) { 
-      const shouldLogin = window.confirm("Please login to use Smart Pet Matching! Would you like to go to the login page?");
-      if (shouldLogin && onNavigateToLogin) {
-        onNavigateToLogin();
-      }
-      return; 
-    }
+    if (!user || !user.id) {
+    alert("Please login to use Smart Pet Matching");
+    navigate("/login");
+    return;
+  }
 
-    //  Check if user has filled basic preferences
-    const prefs = user.preferences || {};
-    const hasBasicPrefs = 
-      (prefs.preferredSize && prefs.preferredSize.length > 0) ||
-      (prefs.preferredTemperament && prefs.preferredTemperament.length > 0);
-
-    if (!hasBasicPrefs) {
-      const goToProfile = window.confirm(
-        " For accurate matching, please complete your preferences first!\n\n" +
-        "This includes:\n" +
-        "• Preferred pet size\n" +
-        "• Preferred temperament\n" +
-        "• Living situation (garden, children, other pets)\n\n" +
-        "Would you like to go to your profile now?"
-      );
-      
-      if (goToProfile) {
-        navigate("/profile");
-      }
-      return;
-    }
+  if (!isProfileComplete) {
+    alert(
+      "Please complete your adoption preferences before using Smart Pet Matching.\n\n" +
+      "This ensures accurate and responsible recommendations."
+    );
+    navigate("/profile");
+    return;
+  }
 
     setLoading(true);
     setMatchingWarning(null); // Reset warning
@@ -268,11 +261,20 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
         {/* Filter Controls */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="mb-6">
-            <button 
-              onClick={getAIMatches} 
-              className="w-full bg-gradient-to-r from-[#FF8C42] to-[#FFA726] hover:from-[#e67e3b] hover:to-[#f59e0b] text-white font-semibold py-4 rounded-lg flex items-center justify-center gap-3 shadow-lg transition-all"
+            <button
+              onClick={getAIMatches}
+              disabled={!isProfileComplete}
+              className={`w-full py-4 rounded-lg font-semibold flex items-center justify-center gap-3 shadow-lg transition-all
+                ${
+                  isProfileComplete
+                    ? "bg-gradient-to-r from-[#FF8C42] to-[#FFA726] text-white"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
             >
-              <Sparkles className="w-6 h-6" /> Get Smart Pet Matching Recommendations
+              <Sparkles className="w-6 h-6" />
+              {isProfileComplete
+                ? "Use Smart Pet Matching"
+                : "Complete Preferences to Use Smart Matching"}
             </button>
           </div>
           

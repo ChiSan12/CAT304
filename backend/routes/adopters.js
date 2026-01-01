@@ -117,25 +117,6 @@ router.get("/pets/all", async (req, res) => {
   }
 });
 
-router.get("/pets/:petId", async (req, res) => {
-  try {
-    const { petId } = req.params;
-
-    const pet = await Pet.findOne({ _id: petId, adoptionStatus: "Available" });
-
-    res.json({
-      success: true,
-      pet,
-    });
-  } catch (error) {
-    console.error("Fetch Pet Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch pet",
-    });
-  }
-});
-
 //  4. Get Single Pet Details 
 router.get('/pets/:petId', async (req, res) => {
   try {
@@ -164,6 +145,18 @@ router.get('/pets/:petId', async (req, res) => {
   }
 });
 
+// helper: convert pet age to age group
+function getAgeGroup(pet) {
+  const years = pet.age?.years || 0;
+  const months = pet.age?.months || 0;
+  const totalMonths = years * 12 + months;
+
+  if (totalMonths < 12) return "Puppy";
+  if (totalMonths < 36) return "Young";
+  if (totalMonths < 96) return "Adult";
+  return "Senior";
+}
+
 // 5. Smart Pet Matching
 router.post('/pets/match', async (req, res) => {
   try {
@@ -177,17 +170,17 @@ router.post('/pets/match', async (req, res) => {
 
     const prefs = adopter.preferences;
 
-    // Check if user has basic preferences filled
-    // This prevents confusion when users see low scores
-    const hasBasicPrefs = 
-      (prefs.preferredSize && prefs.preferredSize.length > 0) ||
-      (prefs.preferredTemperament && prefs.preferredTemperament.length > 0);
+    const isProfileComplete =
+      prefs.preferredSize?.length > 0 &&
+      prefs.preferredTemperament?.length > 0 &&
+      prefs.preferredAge?.length > 0 &&
+      !!prefs.experienceLevel;
 
-    if (!hasBasicPrefs) {
-      return res.json({ 
-        success: false, 
-        message: 'Please complete your preferences for accurate matching',
-        needsPreferences: true // Special flag for frontend
+    if (!isProfileComplete) {
+      return res.json({
+        success: false,
+        needsPreferences: true,
+        message: "All adoption preferences must be completed before using Smart Matching",
       });
     }
 
@@ -221,7 +214,17 @@ router.post('/pets/match', async (req, res) => {
         }
       }
 
-      // 3. Living environment matching (30 points)
+      // 3. Age matching (20 points)
+      if (prefs.preferredAge && prefs.preferredAge.length > 0) {
+        maxScore += 20;
+
+        const petAgeGroup = getAgeGroup(pet);
+        if (prefs.preferredAge.includes(petAgeGroup)) {
+          score += 20;
+        }
+      }
+
+      // 4. Living environment matching (30 points)
       maxScore += 30;
 
       // Suitable for children
@@ -242,6 +245,24 @@ router.post('/pets/match', async (req, res) => {
         score += 10;
       }
 
+      // 5. Experience (10)
+      if (prefs.experienceLevel) {
+        maxScore += 10;
+        if (prefs.experienceLevel === "Experienced") score += 10;
+        else if (prefs.experienceLevel === "Some Experience") score += 7;
+        else if (prefs.experienceLevel === "First-time") {
+          if (!pet.specialNeeds && pet.size !== "Large") score += 10;
+      }
+    }
+
+      // Experience penalty
+      if (
+        prefs.experienceLevel === "First-time" &&
+        pet.size === "Large"
+      ) {
+        score -= 5;
+      }
+
       // Calculate final compatibility score
       // Handle case where maxScore is 0 (no preferences)
       const compatibilityScore = maxScore > 0 
@@ -257,19 +278,9 @@ router.post('/pets/match', async (req, res) => {
     // Sort pets by compatibility score 
     petsWithScores.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
 
-    // Add warning if living situation is not filled
-    // This helps users complete all preferences for better results
-    const needsLivingSituation = 
-      prefs.hasGarden === undefined || 
-      prefs.hasChildren === undefined || 
-      prefs.hasOtherPets === undefined;
-
     res.json({ 
       success: true, 
       pets: petsWithScores,
-      warning: needsLivingSituation 
-        ? 'Complete your living situation for more accurate results' 
-        : null
     });
   } catch (error) {
     console.error("AI Matching Error:", error);
