@@ -14,6 +14,8 @@ import ShelterDashboard from "./pages/ShelterDashboard";
 import ShelterLoginPage from "./pages/ShelterLoginPage";
 import ShelterPetsPage from "./pages/ShelterPetsPage";
 import ShelterRequestPage from "./pages/ShelterRequestPage";
+import ShelterPostAdoptionPage from "./pages/ShelterPostAdoptionPage";
+import ShelterPostAdoptionDetail from "./pages/ShelterPostAdoptionDetail";
 import ShelterStrayReportPage from "./pages/ShelterStrayReportPage";
 import CarePlanPage from "./pages/CarePlanPage";
 
@@ -114,6 +116,8 @@ function App() {
           <Route path="/admin/overview" element={<ShelterDashboard />} />
           <Route path="/admin/manage-pets" element={<ShelterPetsPage />} />
           <Route path="/admin/requests" element={<ShelterRequestPage />} />
+          <Route path="/admin/post-adoption" element={<ShelterPostAdoptionPage />} />
+          <Route path="/admin/post-adoption/:petId" element={<ShelterPostAdoptionDetail />} />
           <Route
             path="/admin/stray-reports"
             element={<ShelterStrayReportPage />}

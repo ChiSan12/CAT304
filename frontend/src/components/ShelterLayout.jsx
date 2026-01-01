@@ -9,6 +9,7 @@ import {
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useEffect } from "react";
+import { HeartPulse } from "lucide-react";
 
 export default function ShelterLayout({ children }) {
   const navigate = useNavigate();
@@ -35,6 +36,11 @@ export default function ShelterLayout({ children }) {
             />
             <NavButton to="/admin/manage-pets" icon={Dog} label="Manage Pets" />
             <NavButton to="/admin/requests" icon={FileText} label="Requests" />
+            <NavButton
+              to="/admin/post-adoption"
+              icon={HeartPulse}
+              label="Post-Adoption"
+            />
             <NavButton
               to="/admin/stray-reports"
               icon={AlertTriangle}

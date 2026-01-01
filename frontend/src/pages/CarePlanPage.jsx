@@ -456,26 +456,47 @@ function PetUpdateCard({ pet }) {
     setPreviewImages(previews);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!notes.trim()) return;
 
-    // 🔹 DEMO ONLY – later you can POST to backend
     console.log({
-      petId: pet.petId._id,
-      notes,
-      weight,
-      condition,
-      images,
+      petId: pet.petId?._id,
+      adopterId: pet.adopterId,
+      shelterId: pet.petId?.shelterId
+    });
+
+    const formData = new FormData();
+    formData.append('petId', pet.petId._id);
+    formData.append('adopterId', pet.adopterId);
+    formData.append('shelterId', pet.petId.shelterId);
+
+    formData.append('notes', notes);
+    formData.append('weight', weight);
+    formData.append('condition', condition);
+
+    images.forEach((img) => {
+      formData.append('images', img);
+    });
+
+    try {
+      await fetch('http://localhost:5000/api/pet-updates', {
+        method: 'POST',
+        body: formData,
     });
 
     setSubmitted(true);
+    // setTimeout(() => setSubmitted(false), 3000);
+
     setNotes('');
     setWeight('');
     setCondition('');
     setImages([]);
-    setPreviewImages([]);
-
+    setPreviewImages([]); 
+    
     setTimeout(() => setSubmitted(false), 3000);
+    } catch (err) {
+      console.error('Submit pet update failed:', err);
+    }
   };
 
   return (

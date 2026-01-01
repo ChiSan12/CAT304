@@ -20,6 +20,20 @@ router.post('/login', async (req, res) => {
   } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 });
 
+// POST-ADOPTION (ADMIN)
+router.get('/adopted-pets', async (req, res) => {
+  try {
+    const pets = await Pet.find({ adoptionStatus: 'Adopted' })
+      .populate('shelterId', 'name')
+      .sort({ updatedAt: -1 });
+
+    res.json({ success: true, pets });
+  } catch (err) {
+    console.error('Fetch adopted pets error:', err);
+    res.status(500).json({ success: false });
+  }
+});
+
 // 1. DASHBOARD STATS
 router.get('/:shelterId/stats', async (req, res) => {
   try {

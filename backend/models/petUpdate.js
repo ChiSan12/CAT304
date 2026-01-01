@@ -13,11 +13,11 @@ const petUpdateSchema = new mongoose.Schema({
   },
 
   images: [
-    {
-      data: Buffer,
-      contentType: String
-    }
-  ]
+  {
+    data: Buffer,
+    contentType: String
+  }
+]
 }, { timestamps: true });
 
 module.exports = mongoose.model('PetUpdate', petUpdateSchema);

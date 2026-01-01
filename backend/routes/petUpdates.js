@@ -3,8 +3,6 @@ const router = express.Router();
 const multer = require('multer');
 const PetUpdate = require('../models/petUpdate');
 
-console.log('Pet update files:', req.files?.length);
-
 // ============================
 // Multer (inline, memory)
 // ============================
@@ -24,6 +22,8 @@ router.post(
   '/',
   upload.array('images', 5),
   async (req, res) => {
+    // console.log('Pet update files:', req.files?.length);
+
     try {
       const {
         petId,
@@ -41,10 +41,9 @@ router.post(
         });
       }
 
-      const images = req.files?.map(f => ({
-        data: f.buffer,
-        contentType: f.mimetype
-      })) || [];
+      const images = req.files?.map(f =>
+        `data:${f.mimetype};base64,${f.buffer.toString('base64')}`
+      ) || [];
 
       const update = await PetUpdate.create({
         petId,
