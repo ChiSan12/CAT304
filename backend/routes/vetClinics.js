@@ -11,17 +11,22 @@ router.get("/nearby", async (req, res) => {
       return res.status(400).json({ message: "lat and lng are required" });
     }
 
-    const clinics = await VeterinaryClinic.find({
-      location: {
-        $near: {
-          $geometry: {
+    const clinics = await VeterinaryClinic.aggregate([
+      {
+        $geoNear: {
+          near: {
             type: "Point",
             coordinates: [parseFloat(lng), parseFloat(lat)]
           },
-          $maxDistance: 8000
+          distanceField: "distance",   // ← THIS is what you’re missing
+          spherical: true,
+          maxDistance: 8000            // 8 km
         }
+      },
+      {
+        $limit: 10
       }
-    });
+    ]);
 
     res.json(clinics);
   } catch (err) {
