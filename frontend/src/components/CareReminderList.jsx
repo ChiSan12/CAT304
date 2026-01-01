@@ -27,14 +27,14 @@ export default function CareReminderList({ petId, role = 'adopter' }) {
     setReminders(prev =>
       prev.map(r =>
         r._id === id
-          ? { ...r, status: 'completed', completedAt: new Date() }
+          ? { ...r, status: 'Completed', completedAt: new Date() }
           : r
       )
     );
   };
 
   const getStatus = (reminder) => {
-    if (reminder.status === 'completed') {
+    if (reminder.status === 'Completed') {
       return { text: 'Completed', style: 'bg-green-100 text-green-700' };
     }
 
@@ -105,7 +105,7 @@ export default function CareReminderList({ petId, role = 'adopter' }) {
             </div>
 
             {/* Action */}
-            {reminder.status !== 'completed' && role === 'adopter' && (
+            {reminder.status !== 'Completed' && role === 'adopter' && (
               <button
                 onClick={() => markCompleted(reminder._id)}
                 className="mt-4 px-4 py-2 text-sm rounded-lg bg-[#FF8C42] text-white hover:bg-[#e67e3b]"

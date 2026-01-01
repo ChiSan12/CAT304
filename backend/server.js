@@ -24,6 +24,9 @@ app.use('/api/shelters', shelterRoutes);
 const reportRouter = require('./routes/reports');
 app.use('/api/reports', reportRouter); // only mount once
 
+const careReminderRoutes = require('./routes/careReminder');
+app.use('/api/reminders', careReminderRoutes);
+
 const vetClinicRoutes = require('./routes/vetClinics');
 app.use('/api/vet-clinics', vetClinicRoutes);
 

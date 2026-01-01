@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const Pet = require('../models/pet');
 const Shelter = require('../models/shelter');
 const Adopter = require('../models/adopter');
+const ReminderTemplate = require('../models/reminderTemplate');
 const CareReminder = require('../models/careReminder');
 
 // 0. SHELTER LOGIN
@@ -210,7 +211,41 @@ router.patch('/:shelterId/requests/:requestId/approve', async (req, res) => {
     // 2. Pet set as ddopted
     pet.adoptionStatus = 'Adopted';
 
-    await generateVaccinationReminder(pet);
+    // await generateVaccinationReminder(pet);
+    /* ================= 🔥 AUTOMATED CARE REMINDERS 🔥 ================= */
+
+    // Fetch reminder templates for this shelter
+    const templates = await ReminderTemplate.find({
+      shelterId: shelterId,
+      active: true
+    });
+
+    // Create reminders from templates
+    const reminders = templates.map(t => ({
+      petId: pet._id,
+      adopterId: adopter._id,
+      shelterId: shelterId,
+      title: t.title,
+      description: t.description,
+      category: t.title.toLowerCase().includes("vaccin")
+        ? "Vaccination"
+        : "Health Check",
+      dueDate: new Date(
+        Date.now() + t.daysAfterAdoption * 24 * 60 * 60 * 1000
+      ),
+      status: 'Pending',                  // ✅ REQUIRED
+      createdBy: 'System'                 // ✅ ENUM SAFE
+    }));
+
+    await CareReminder.deleteMany({
+      petId: pet._id,
+      adopterId: adopter._id
+    });
+
+    // Insert all reminders at once
+    if (reminders.length > 0) {
+      await CareReminder.insertMany(reminders);
+    }
 
     // 3. Reject same pet pending request
     await Adopter.updateMany(
@@ -236,12 +271,15 @@ router.patch('/:shelterId/requests/:requestId/approve', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Approve Error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to approve request'
-    });
-  }
+  console.error('🔥 APPROVE ERROR FULL:', error);
+  console.error('🔥 ERROR MESSAGE:', error.message);
+  console.error('🔥 ERROR STACK:', error.stack);
+
+  res.status(500).json({
+    success: false,
+    message: error.message   // 👈 SHOW REAL ERROR
+  });
+}
 });
 
 // 11. REJECT ADOPTION REQUEST
@@ -293,35 +331,5 @@ router.patch('/:shelterId/requests/:requestId/reject', async (req, res) => {
     });
   }
 });
-
-const generateVaccinationReminder = async (pet) => {
-  const health = pet.healthStatus || {};
-
-  let dueDate;
-  let title;
-
-  if (health.nextVaccinationDue) {
-    dueDate = new Date(health.nextVaccinationDue);
-    title = 'Vaccination Reminder';
-  } else if (health.vaccinated === false) {
-    dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 7);
-    title = 'Initial Vaccination Required';
-  } else {
-    dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 14);
-    title = 'Vaccination Check';
-  }
-
-  await CareReminder.create({
-    petId: pet._id,
-    type: 'vaccination',
-    title,
-    dueDate,
-    status: 'pending',
-    createdBy: 'system',
-    notes: 'Automatically generated after adoption',
-  });
-};
 
 module.exports = router;
