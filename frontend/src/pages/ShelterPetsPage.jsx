@@ -48,13 +48,6 @@ export default function ShelterPetsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [SHELTER_ID]);
 
-  if (!user || user.role !== "shelter")
-    return (
-      <div className="p-20 text-center text-red-600 font-bold">
-        Access Denied
-      </div>
-    );
-
   return (
     <ShelterLayout>
       <div className="flex-1 p-8 ml-64">
