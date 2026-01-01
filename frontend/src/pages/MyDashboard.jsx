@@ -10,12 +10,14 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import CarePlanPage from './CarePlanPage';
 
 export default function MyDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview"); // overview, requests, adopted
+  const [viewCarePet, setViewCarePet] = useState(null);
 
   const [dashboardData, setDashboardData] = useState({
     stats: {
@@ -92,6 +94,15 @@ export default function MyDashboard() {
       setLoading(false);
     }
   };
+
+  if (viewCarePet) {
+    return (
+      <CarePlanPage
+        pet={viewCarePet}
+        onClose={() => setViewCarePet(null)}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -179,7 +190,8 @@ export default function MyDashboard() {
             )}
 
             {activeTab === "adopted" && (
-              <AdoptedPetsTab pets={dashboardData.adoptedPets} />
+              <AdoptedPetsTab pets={dashboardData.adoptedPets}
+              onViewCarePlan={setViewCarePet} />
             )}
           </div>
         </div>
@@ -385,7 +397,7 @@ function RequestsTab({ requests, onRefresh, adopterId }) {
   );
 }
 
-function AdoptedPetsTab({ pets }) {
+function AdoptedPetsTab({ pets, onViewCarePlan }) {
   if (pets.length === 0) {
     return (
       <div className="text-center py-12">
@@ -422,7 +434,9 @@ function AdoptedPetsTab({ pets }) {
                 Adopted: {new Date(item.adoptionDate).toLocaleDateString()}
               </span>
             </div>
-            <button className="w-full bg-[#FF8C42] hover:bg-[#e67e3b] text-white font-medium py-2 rounded-lg transition-colors">
+            <button
+              onClick={() => onViewCarePlan && onViewCarePlan(item)}
+              className="w-full bg-[#FF8C42] hover:bg-[#e67e3b] text-white font-medium py-2 rounded-lg transition-colors">
               View Care Plan
             </button>
           </div>

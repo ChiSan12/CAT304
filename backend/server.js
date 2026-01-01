@@ -24,6 +24,9 @@ app.use('/api/shelters', shelterRoutes);
 const reportRouter = require('./routes/reports');
 app.use('/api/reports', reportRouter); // only mount once
 
+const vetClinicRoutes = require('./routes/vetClinics');
+app.use('/api/vet-clinics', vetClinicRoutes);
+
 // Google GenAI setup
 const ai = new GoogleGenAI({ key: process.env.GEMINI_API_KEY });
 
