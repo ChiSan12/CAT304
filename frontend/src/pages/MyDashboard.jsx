@@ -122,6 +122,40 @@ export default function MyDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <StatCard
+            icon={Heart}
+            label="Total Requests"
+            value={dashboardData.stats.totalRequests}
+            color="orange"
+          />
+          <StatCard
+            icon={Clock}
+            label="Pending"
+            value={dashboardData.stats.pendingRequests}
+            color="yellow"
+          />
+          <StatCard
+            icon={CheckCircle}
+            label="Approved"
+            value={dashboardData.stats.approvedRequests}
+            color="green"
+          />
+          <StatCard
+            icon={XCircle}
+            label="Rejected"
+            value={dashboardData.stats.rejectedRequests}
+            color="red"
+          />
+          <StatCard
+            icon={PawPrint}
+            label="Adopted"
+            value={dashboardData.stats.adoptedPets}
+            color="purple"
+          />
+        </div>
+
         {/* Tabs */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="flex border-b border-gray-200">
