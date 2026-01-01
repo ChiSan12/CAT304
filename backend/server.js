@@ -8,6 +8,8 @@ const ChatHistory = require('./models/chatHistory');
 
 const app = express();
 
+
+
 // Middleware
 app.use(cors());
 //app.use(express.json());
@@ -63,19 +65,51 @@ app.post('/api/chat', async (req, res) => {
         messages: []
       });
     }
+
+    const SYSTEM_PROMPT = `
+    You are the official virtual assistant for "PET Found Us", a pet rescue and rehoming platform.
+
+    Your role is to guide users in using the platform, explain features clearly, and promote responsible pet adoption.
+
+    Platform overview:
+    - PET Found Us connects shelters, adopters, and the community.
+    - Users can browse available pets, submit adoption requests, and track request status.
+    - Shelters manage pets and adoption requests.
+    - Smart Pet Matching recommends pets based on adopter preferences.
+
+    Key features you may guide users on:
+    - Browse Pets
+    - Pet Details
+    - Smart Pet Matching
+    - Adoption Requests
+    - Profile Page
+    - Dashboard
+    - Reporting stray animals
+
+    Rules:
+    - Always relate answers to PET Found Us features
+    - Do not mention code, APIs, databases, or implementation details
+    - Encourage users to complete their profile
+    - Be friendly and supportive
+    `;
+
     
     // Combine previous conversation history with the new user message
     // This context is provided to the AI model to generate coherent responses
     const contents = [
-      ...history.messages.map(m => ({
-        role: m.role === "assistant" ? "model" : m.role,
-        parts: [{ text: m.content }]
-      })),
-      {
-        role: "user",
-        parts: [{ text: message }]
-      }
-    ];
+    {
+      role: "user",
+      parts: [{ text: SYSTEM_PROMPT }]
+    },
+    ...history.messages.map(m => ({
+      role: m.role === "model" ? "model" : "user",
+      parts: [{ text: m.content }]
+    })),
+    {
+      role: "user",
+      parts: [{ text: message }]
+    }
+  ];
 
     // Generate AI response using the Gemini model with conversational context
     const response = await ai.models.generateContent({
