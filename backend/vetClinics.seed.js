@@ -1,38 +1,43 @@
-import mongoose from "mongoose";
-import VeterinaryClinic from "../models/VeterinaryClinic.js";
+const mongoose = require("mongoose");
+const VetClinic = require("./models/VeterinaryClinic");
 
-await mongoose.connect("mongodb://127.0.0.1:27017/petfoundus");
+async function seed() {
+  await mongoose.connect("mongodb://127.0.0.1:27017/test");
 
-const clinics = [
-  {
-    name: "Gurney Veterinary Clinic",
-    address: "Gurney Drive, George Town, Penang",
-    phone: "04-226 5885",
-    location: {
-      type: "Point",
-      coordinates: [100.3067, 5.4378]
-    }
-  },
-  {
-    name: "Island Veterinary Clinic",
-    address: "Jalan Perak, Penang",
-    phone: "04-228 2944",
-    location: {
-      type: "Point",
-      coordinates: [100.3129, 5.4213]
-    }
-  },
-  {
-    name: "Rainbow Veterinary Clinic",
-    address: "Sungai Dua, Penang",
-    phone: "04-655 2208",
-    location: {
-      type: "Point",
-      coordinates: [100.2946, 5.3535]
-    }
-  }
-];
+  await VetClinic.deleteMany();
 
-await VeterinaryClinic.insertMany(clinics);
-console.log("🐾 Vet clinics seeded");
-process.exit();
+  await VetClinic.insertMany([
+    {
+      name: "Island Veterinary Clinic",
+      address: "Jalan Perak, George Town, Penang",
+      location: {
+        type: "Point",
+        coordinates: [100.3129, 5.4213]
+      }
+    },
+    {
+      name: "Gurney Veterinary Clinic",
+      address: "Gurney Drive, Penang",
+      location: {
+        type: "Point",
+        coordinates: [100.3067, 5.4378]
+      }
+    },
+    {
+      name: "Rainbow Veterinary Clinic",
+      address: "Sungai Dua, Penang",
+      location: {
+        type: "Point",
+        coordinates: [100.2946, 5.3535]
+      }
+    }
+  ]);
+
+  console.log("✅ Veterinary clinics seeded successfully");
+  process.exit();
+}
+
+seed().catch(err => {
+  console.error(err);
+  process.exit(1);
+});

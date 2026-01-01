@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const VeterinaryClinicSchema = new mongoose.Schema({
   name: { type: String, required: true },
   address: String,
-  phone: String,
 
   location: {
     type: {
@@ -18,7 +17,7 @@ const VeterinaryClinicSchema = new mongoose.Schema({
   }
 });
 
-// Geo index (VERY IMPORTANT)
+// Geo index (
 VeterinaryClinicSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model(

@@ -2,6 +2,7 @@ import express from "express";
 import VeterinaryClinic from "../models/VeterinaryClinic.js";
 
 const router = express.Router();
+app.use("/api/vets", vetsRoutes);
 
 router.get("/nearby", async (req, res) => {
   const { lat, lng } = req.query;
