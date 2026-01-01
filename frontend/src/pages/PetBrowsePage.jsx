@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Search, Filter } from 'lucide-react';
+import { Sparkles, Search, Filter, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PetCard from '../components/PetCard';
 import PetDetailPage from './PetDetailPage';
+import { useNavigate } from 'react-router-dom';
+
 
 export default function PetBrowsePage({ onNavigateToLogin }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [scrollPosition, setScrollPosition] = useState(0);
 
   // Per-user storage keys
@@ -21,6 +24,7 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
   const [filteredPets, setFilteredPets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAIMatch, setShowAIMatch] = useState(false);
+  const [matchingWarning, setMatchingWarning] = useState(null); // 🆕 For backend warnings
   
   // Restore selectedPet from storage if we were viewing detail
   const [selectedPet, setSelectedPet] = useState(() => {
@@ -106,8 +110,10 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
     if (filters.temperament !== 'All') result = result.filter(pet => pet.labels.temperament.includes(filters.temperament));
     setFilteredPets(result);
     setShowAIMatch(false); // Turn off Smart Matching banner when manually filtering
+    setMatchingWarning(null); // Clear any warnings
   };
 
+  //  Improved Smart Matching with Preferences Check
   const getAIMatches = async () => {
     if (!user || !user.id) { 
       const shouldLogin = window.confirm("Please login to use Smart Pet Matching! Would you like to go to the login page?");
@@ -116,7 +122,32 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
       }
       return; 
     }
+
+    //  Check if user has filled basic preferences
+    const prefs = user.preferences || {};
+    const hasBasicPrefs = 
+      (prefs.preferredSize && prefs.preferredSize.length > 0) ||
+      (prefs.preferredTemperament && prefs.preferredTemperament.length > 0);
+
+    if (!hasBasicPrefs) {
+      const goToProfile = window.confirm(
+        " For accurate matching, please complete your preferences first!\n\n" +
+        "This includes:\n" +
+        "• Preferred pet size\n" +
+        "• Preferred temperament\n" +
+        "• Living situation (garden, children, other pets)\n\n" +
+        "Would you like to go to your profile now?"
+      );
+      
+      if (goToProfile) {
+        navigate("/profile");
+      }
+      return;
+    }
+
     setLoading(true);
+    setMatchingWarning(null); // Reset warning
+    
     try {
       const response = await fetch('http://localhost:5000/api/adopters/pets/match', {
         method: 'POST',
@@ -124,12 +155,24 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
         body: JSON.stringify({ adopterId: user.id })
       });
       const data = await response.json();
+      
       if (data.success) { 
         setFilteredPets(data.pets); 
-        setShowAIMatch(true); 
+        setShowAIMatch(true);
+        
+        //  Show warning if backend sent one
+        if (data.warning) {
+          setMatchingWarning(data.warning);
+        }
+      } else if (data.needsPreferences) {
+        // Backend says preferences are needed
+        alert(data.message);
+      } else {
+        alert('Matching failed: ' + data.message);
       }
     } catch (error) { 
-      console.error(error); 
+      console.error(error);
+      alert('Network error during matching');
     } finally { 
       setLoading(false); 
     }
@@ -139,6 +182,7 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
     setFilters({ species: 'All', size: 'All', temperament: 'All' });
     setFilteredPets(pets);
     setShowAIMatch(false);
+    setMatchingWarning(null);
   };
 
   // Adoption Request
@@ -177,7 +221,7 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
         if (data.success) {
           alert("Request submitted! 🎉");
           setMyRequests(prev => [...prev, petId]);
-          await fetchPets();
+          await fetchPets(); // Refresh pets list
         } else {
           alert(data.message);
         }
@@ -226,7 +270,7 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
           <div className="mb-6">
             <button 
               onClick={getAIMatches} 
-              className="w-full bg-gradient-to-r from-[#FF8C42] to-[#FFA726] hover:from-[#e67e3b] hover:to-[#f59e0b] text-white font-semibold py-4 rounded-lg flex items-center justify-center gap-3 shadow-lg"
+              className="w-full bg-gradient-to-r from-[#FF8C42] to-[#FFA726] hover:from-[#e67e3b] hover:to-[#f59e0b] text-white font-semibold py-4 rounded-lg flex items-center justify-center gap-3 shadow-lg transition-all"
             >
               <Sparkles className="w-6 h-6" /> Get Smart Pet Matching Recommendations
             </button>
@@ -244,16 +288,16 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
                   <option value="All">All {field}</option>
                   {field === 'Species' && <><option value="Dog">Dogs</option><option value="Cat">Cats</option></>}
                   {field === 'Size' && <><option value="Small">Small</option><option value="Medium">Medium</option><option value="Large">Large</option></>}
-                  {field === 'Temperament' && <><option value="Calm">Calm</option><option value="Playful">Playful</option><option value="Friendly">Friendly</option></>}
+                  {field === 'Temperament' && <><option value="Calm">Calm</option><option value="Playful">Playful</option><option value="Friendly">Friendly</option><option value="Energetic">Energetic</option><option value="Independent">Independent</option></>}
                 </select>
               </div>
             ))}
 
             <div className="flex flex-col gap-2">
-              <button onClick={applyFilters} className="flex-1 bg-[#FF8C42] hover:bg-[#e67e3b] text-white font-medium py-2 rounded-lg flex items-center justify-center gap-2">
+              <button onClick={applyFilters} className="flex-1 bg-[#FF8C42] hover:bg-[#e67e3b] text-white font-medium py-2 rounded-lg flex items-center justify-center gap-2 transition-colors">
                 <Filter className="w-4 h-4" /> Apply
               </button>
-              <button onClick={resetFilters} className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 rounded-lg">
+              <button onClick={resetFilters} className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 rounded-lg transition-colors">
                 Reset
               </button>
             </div>
@@ -264,7 +308,17 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
         {showAIMatch && (
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 flex items-center gap-3 animate-fade-in">
             <Sparkles className="w-5 h-5 text-[#FF8C42]" />
-            <p className="text-orange-900 font-medium">Showing smart-matched pets</p>
+            <p className="text-orange-900 font-medium">Showing smart-matched pets based on your preferences</p>
+          </div>
+        )}
+
+        {/*  Warning Banner for incomplete preferences */}
+        {matchingWarning && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-600" />
+            <div className="flex-grow">
+              <p className="text-yellow-900 font-medium">{matchingWarning}</p>
+            </div>
           </div>
         )}
 
@@ -285,7 +339,7 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
                 onViewDetails={() => {
                   setScrollPosition(window.scrollY);
                   setSelectedPet({ ...pet, _fromAI: showAIMatch });
-                  window.scrollTo(0, 0)
+                  window.scrollTo(0, 0);
                 }}
               />
             ))}
@@ -296,6 +350,7 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
           <div className="text-center py-20">
              <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
              <h3 className="text-xl font-semibold text-gray-700">No pets found</h3>
+             <p className="text-gray-500 mt-2">Try adjusting your filters</p>
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Heart,
   PawPrint,
@@ -7,6 +7,8 @@ import {
   XCircle,
   Calendar,
   TrendingUp,
+  AlertCircle,
+  Settings
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +17,7 @@ export default function MyDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview"); // overview, requests, adopted
+  const [activeTab, setActiveTab] = useState("overview");
 
   const [dashboardData, setDashboardData] = useState({
     stats: {
@@ -29,16 +31,7 @@ export default function MyDashboard() {
     adoptedPets: [],
   });
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/login");
-    }
-
-    if (user?.id) loadDashboard();
-  }, [user]);
-
-  const loadDashboard = async () => {
-    // 1. Safety check: Stop if user isn't loaded yet to fix the "undefined" error in your console
+  const loadDashboard = useCallback(async () => {
     if (!user || !user.id) return;
 
     try {
@@ -50,18 +43,16 @@ export default function MyDashboard() {
         const requests = data.adopter.adoptionRequests || [];
         const dbAdopted = data.adopter.adoptedPets || [];
 
-        // 2. THE FIX: Treat 'Approved' requests as Adopted pets
-        // This takes any request marked 'Approved' and adds it to the adopted list
+        // Treat 'Approved' requests as Adopted pets
         const approvedAsAdopted = requests
           .filter((r) => r.status === "Approved")
           .map((r) => ({
             petId: r.petId,
-            adoptionDate: r.requestDate, // Use request date since adoption date isn't set yet
+            adoptionDate: r.requestDate,
             _id: r._id,
           }));
 
-        // Combine the actual database adopted pets with the approved requests
-        // Using a Map to remove duplicates based on petId, just in case
+        // Combine adopted pets
         const uniqueAdoptedMap = new Map();
         [...dbAdopted, ...approvedAsAdopted].forEach((item) => {
           if (item.petId?._id) {
@@ -74,16 +65,13 @@ export default function MyDashboard() {
         setDashboardData({
           stats: {
             totalRequests: requests.length,
-            pendingRequests: requests.filter((r) => r.status === "Pending")
-              .length,
-            approvedRequests: requests.filter((r) => r.status === "Approved")
-              .length,
-            rejectedRequests: requests.filter((r) => r.status === "Rejected")
-              .length,
-            adoptedPets: allAdopted.length, // Update the count
+            pendingRequests: requests.filter((r) => r.status === "Pending").length,
+            approvedRequests: requests.filter((r) => r.status === "Approved").length,
+            rejectedRequests: requests.filter((r) => r.status === "Rejected").length,
+            adoptedPets: allAdopted.length,
           },
           requests: requests,
-          adoptedPets: allAdopted, // Update the list
+          adoptedPets: allAdopted,
         });
       }
     } catch (err) {
@@ -91,7 +79,16 @@ export default function MyDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+  if (!user) {
+    navigate("/login");
+    return;
+  }
+
+  loadDashboard();
+  }, [user, navigate, loadDashboard]);
 
   if (loading) {
     return (
@@ -112,6 +109,10 @@ export default function MyDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
+        
+        {/*  Preferences Completion Status Card */}
+        <PreferencesStatusCard user={user} />
+
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <StatCard
@@ -189,6 +190,96 @@ export default function MyDashboard() {
 }
 
 /* ============ Components ============ */
+
+//  Preferences Status Card Component
+function PreferencesStatusCard({ user }) {
+  const prefs = user?.preferences || {};
+  const navigate = useNavigate();
+  
+  // Calculate completion status
+  const checks = [
+    { 
+      label: 'Preferred Size', 
+      completed: prefs.preferredSize && prefs.preferredSize.length > 0,
+      description: 'Help us find the right size pet for your home'
+    },
+    { 
+      label: 'Preferred Temperament', 
+      completed: prefs.preferredTemperament && prefs.preferredTemperament.length > 0,
+      description: 'Match pets with your lifestyle'
+    },
+    { 
+      label: 'Living Situation', 
+      completed: prefs.hasGarden !== undefined || prefs.hasChildren !== undefined || prefs.hasOtherPets !== undefined,
+      description: 'Essential for accurate pet matching'
+    },
+  ];
+  
+  const completedCount = checks.filter(c => c.completed).length;
+  const completionPercentage = Math.round((completedCount / checks.length) * 100);
+  const isComplete = completedCount === checks.length;
+  
+  // Don't show if preferences are complete
+  if (isComplete) return null;
+  
+  return (
+    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-2xl p-6 mb-8 shadow-md">
+      <div className="flex items-start gap-4">
+        <div className="p-3 bg-yellow-100 rounded-full flex-shrink-0">
+          <AlertCircle className="w-6 h-6 text-yellow-600" />
+        </div>
+        
+        <div className="flex-grow">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xl font-bold text-gray-900">
+              Complete Your Preferences
+            </h3>
+            <span className="text-sm font-bold text-yellow-700 bg-yellow-200 px-3 py-1 rounded-full">
+              {completionPercentage}% Complete
+            </span>
+          </div>
+          
+          <p className="text-gray-700 mb-4">
+            Smart Pet Matching works best when you complete your preferences. 
+            This helps us find the perfect pet for your lifestyle!
+          </p>
+          
+          {/* Progress checks */}
+          <div className="space-y-3 mb-5">
+            {checks.map((check, idx) => (
+              <div key={idx} className="flex items-start gap-3">
+                <div className="mt-0.5">
+                  {check.completed ? (
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
+                  )}
+                </div>
+                <div>
+                  <p className={`font-semibold ${check.completed ? 'text-green-700' : 'text-gray-700'}`}>
+                    {check.label}
+                  </p>
+                  <p className="text-sm text-gray-600">{check.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Action button */}
+          <button 
+            onClick={() => {
+              navigate("/profile");
+            }}
+            className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all"
+          >
+            <Settings className="w-5 h-5" />
+            Complete Preferences Now
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function StatCard({ icon: Icon, label, value, color }) {
   const colors = {

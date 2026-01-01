@@ -6,7 +6,7 @@ const Pet = require("../models/pet");
 const Shelter = require("../models/shelter");
 
 //1. Register New User
-router.post("/register", async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
     const { email, password, fullName, phone } = req.body;
 
@@ -28,7 +28,7 @@ router.post("/register", async (req, res) => {
     // Create new adopter account
     const newAdopter = new Adopter({
       email,
-      password: hashedPassword, // Store hashed password
+      password: hashedPassword,
       fullName,
       phone,
     });
@@ -49,7 +49,7 @@ router.post("/register", async (req, res) => {
 });
 
 //2. User Login
-router.post("/login", async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -100,8 +100,8 @@ router.post("/login", async (req, res) => {
 // 3. Get All Available Pets (Browse Pets)
 router.get("/pets/all", async (req, res) => {
   try {
-    const pets = await Pet.find({ adoptionStatus: "Available" })
-      .populate("shelterId", "name location phone email") // Populate shelter info
+    const pets = await Pet.find({ adoptionStatus: 'Available' })
+      .populate('shelterId', 'name location phone email') // Populate shelter info
       .sort({ createdAt: -1 }); // Latest pets first
 
     res.json({
@@ -136,8 +136,36 @@ router.get("/pets/:petId", async (req, res) => {
   }
 });
 
-// 4. Rule-based Intelligent Pet Matching
-router.post("/pets/match", async (req, res) => {
+//  4. Get Single Pet Details 
+router.get('/pets/:petId', async (req, res) => {
+  try {
+    const { petId } = req.params;
+    
+    const pet = await Pet.findById(petId)
+      .populate('shelterId', 'name location phone email');
+
+    if (!pet) {
+      return res.json({ 
+        success: false, 
+        message: 'Pet not found' 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      pet 
+    });
+  } catch (error) {
+    console.error('Fetch Pet Error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to fetch pet details' 
+    });
+  }
+});
+
+// 5. Smart Pet Matching
+router.post('/pets/match', async (req, res) => {
   try {
     const { adopterId } = req.body;
 
@@ -149,11 +177,23 @@ router.post("/pets/match", async (req, res) => {
 
     const prefs = adopter.preferences;
 
-    // Fetch all available pets
-    const allPets = await Pet.find({ adoptionStatus: "Available" }).populate(
-      "shelterId",
-      "name location phone email"
-    );
+    // Check if user has basic preferences filled
+    // This prevents confusion when users see low scores
+    const hasBasicPrefs = 
+      (prefs.preferredSize && prefs.preferredSize.length > 0) ||
+      (prefs.preferredTemperament && prefs.preferredTemperament.length > 0);
+
+    if (!hasBasicPrefs) {
+      return res.json({ 
+        success: false, 
+        message: 'Please complete your preferences for accurate matching',
+        needsPreferences: true // Special flag for frontend
+      });
+    }
+
+    // Fetch all available pets (YOUR ORIGINAL CODE)
+    const allPets = await Pet.find({ adoptionStatus: 'Available' })
+      .populate('shelterId', 'name location phone email');
 
     // Calculate compatibility score for each pet
     const petsWithScores = allPets.map((pet) => {
@@ -161,20 +201,25 @@ router.post("/pets/match", async (req, res) => {
       let maxScore = 0;
 
       // 1. Size matching (30 points)
-      maxScore += 30;
-      if (prefs.preferredSize.includes(pet.size)) {
-        score += 30;
+      // Only add to maxScore if user specified preferences
+      if (prefs.preferredSize && prefs.preferredSize.length > 0) {
+        maxScore += 30;
+        if (prefs.preferredSize.includes(pet.size)) {
+          score += 30;
+        }
       }
 
       // 2. Temperament matching (40 points)
-      maxScore += 40;
-      const matchingTemperaments = pet.labels.temperament.filter((t) =>
-        prefs.preferredTemperament.includes(t)
-      );
-      score +=
-        (matchingTemperaments.length /
-          Math.max(prefs.preferredTemperament.length, 1)) *
-        40;
+      //  Only add to maxScore if user specified preferences
+      if (prefs.preferredTemperament && prefs.preferredTemperament.length > 0) {
+        maxScore += 40;
+        const matchingTemperaments = pet.labels.temperament.filter(t => 
+          prefs.preferredTemperament.includes(t)
+        );
+        if (matchingTemperaments.length > 0) {
+          score += (matchingTemperaments.length / prefs.preferredTemperament.length) * 40;
+        }
+      }
 
       // 3. Living environment matching (30 points)
       maxScore += 30;
@@ -185,17 +230,23 @@ router.post("/pets/match", async (req, res) => {
       }
 
       // Suitable for other pets
-      if (prefs.hasOtherPets && pet.labels.goodWith.includes("Other Dogs")) {
+      if (prefs.hasOtherPets && (
+        pet.labels.goodWith.includes('Other Dogs') || 
+        pet.labels.goodWith.includes('Other Cats')
+      )) {
         score += 10;
       }
 
-      // Large pets require garden space
-      if (pet.size === "Large" && prefs.hasGarden) {
+      // Large pets require garden space 
+      if (pet.size === 'Large' && prefs.hasGarden) {
         score += 10;
       }
 
-      // Final compatibility score as percentage
-      const compatibilityScore = Math.round((score / maxScore) * 100);
+      // Calculate final compatibility score
+      // Handle case where maxScore is 0 (no preferences)
+      const compatibilityScore = maxScore > 0 
+        ? Math.round((score / maxScore) * 100) 
+        : 0;
 
       return {
         ...pet.toObject(),
@@ -203,12 +254,22 @@ router.post("/pets/match", async (req, res) => {
       };
     });
 
-    // Sort pets by compatibility score (highest first)
+    // Sort pets by compatibility score 
     petsWithScores.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
 
-    res.json({
-      success: true,
+    // Add warning if living situation is not filled
+    // This helps users complete all preferences for better results
+    const needsLivingSituation = 
+      prefs.hasGarden === undefined || 
+      prefs.hasChildren === undefined || 
+      prefs.hasOtherPets === undefined;
+
+    res.json({ 
+      success: true, 
       pets: petsWithScores,
+      warning: needsLivingSituation 
+        ? 'Complete your living situation for more accurate results' 
+        : null
     });
   } catch (error) {
     console.error("AI Matching Error:", error);
@@ -219,13 +280,14 @@ router.post("/pets/match", async (req, res) => {
   }
 });
 
-// 5. Submit Adoption Request
-router.post("/:adopterId/request", async (req, res) => {
+// 6. Submit Adoption Request
+router.post('/:adopterId/request', async (req, res) => {
   try {
     const { adopterId } = req.params;
     const { petId } = req.body;
 
-    // Check whether the pet still exists
+    // Re-fetch pet to check current status (real-time check)
+    // This prevents race conditions where pet is adopted between page load and request
     const pet = await Pet.findById(petId);
     if (!pet) {
       return res.json({
@@ -234,14 +296,15 @@ router.post("/:adopterId/request", async (req, res) => {
       });
     }
 
-    // Ensure the pet is still available for adoption
-    if (pet.adoptionStatus !== "Available") {
-      return res.json({
-        success: false,
-        message: "This pet is no longer available for adoption",
+    // Ensure the pet is still available for adoption 
+    if (pet.adoptionStatus !== 'Available') {
+      return res.json({ 
+        success: false, 
+        message: 'This pet is no longer available for adoption' 
       });
     }
-    // Find the adopter
+
+    // Find the adopter 
     const adopter = await Adopter.findById(adopterId);
 
     if (!adopter) {
@@ -250,8 +313,8 @@ router.post("/:adopterId/request", async (req, res) => {
         message: "Adopter not found or account no longer exists.",
       });
     }
-
-    // Check if the adopter has already submitted a pending request for this pet
+    
+    // Check if the adopter has already submitted a pending request 
     const existingRequest = adopter.adoptionRequests.find(
       (req) => req.petId.toString() === petId && req.status === "Pending"
     );
@@ -263,7 +326,7 @@ router.post("/:adopterId/request", async (req, res) => {
       });
     }
 
-    // Add a new adoption request
+    // Add a new adoption request 
     adopter.adoptionRequests.push({
       petId,
       status: "Pending",
@@ -285,8 +348,8 @@ router.post("/:adopterId/request", async (req, res) => {
   }
 });
 
-// 6. Cancel Adoption Request
-router.delete("/:adopterId/request/:petId", async (req, res) => {
+// 7. Cancel Adoption Request
+router.delete('/:adopterId/request/:petId', async (req, res) => {
   try {
     const { adopterId, petId } = req.params;
 
@@ -319,14 +382,13 @@ router.delete("/:adopterId/request/:petId", async (req, res) => {
   }
 });
 
-// 7. Get All Adoption Requests of an Adopter
-router.get("/:adopterId/requests", async (req, res) => {
+// 8. Get All Adoption Requests of an Adopter
+router.get('/:adopterId/requests', async (req, res) => {
   try {
     const { adopterId } = req.params;
 
-    const adopter = await Adopter.findById(adopterId).populate(
-      "adoptionRequests.petId"
-    ); // Populate pet details
+    const adopter = await Adopter.findById(adopterId)
+      .populate('adoptionRequests.petId');
 
     if (!adopter) {
       return res.json({
@@ -348,12 +410,12 @@ router.get("/:adopterId/requests", async (req, res) => {
   }
 });
 
-// 8. Get Adopter Profile
-router.get("/:id", async (req, res) => {
+// 9. Get Adopter Profile
+router.get('/:id', async (req, res) => {
   try {
     const adopter = await Adopter.findById(req.params.id)
-      .populate("adoptedPets.petId") // Populate adopted pet details
-      .populate("adoptionRequests.petId"); // Populate requested pet details
+      .populate('adoptedPets.petId')
+      .populate('adoptionRequests.petId');
 
     if (!adopter) {
       return res.json({ success: false, message: "Adopter not found" });
@@ -374,8 +436,8 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// 9. Update Adopter Profile
-router.put("/:id", async (req, res) => {
+// 10. Update Adopter Profile
+router.put('/:id', async (req, res) => {
   try {
     const { fullName, phone, address, preferences } = req.body;
 
