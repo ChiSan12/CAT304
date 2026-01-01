@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Heart,
@@ -15,7 +16,6 @@ export default function PetDetailPage({
   pet,
   onBack,
   onRequestSubmitted,
-  onNavigateToLogin
 }) {
   const { user } = useAuth();
 
@@ -26,7 +26,7 @@ export default function PetDetailPage({
   // Smart Pet Matching detection
   const matchScore = pet?.compatibilityScore;
   const isAIMatch = pet?._fromAI || (matchScore !== undefined && matchScore > 0);
-
+  const navigate = useNavigate();
   const [isRequested, setIsRequested] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -101,11 +101,13 @@ export default function PetDetailPage({
 
   // Request or cancel
   const handleToggleRequest = async () => {
-    if (!user) {
+    if (!user|| !user.id) {
       const goLogin = window.confirm(
         "Please login to adopt. Would you like to go to the login page?"
       );
-      if (goLogin && onNavigateToLogin) onNavigateToLogin();
+      if (goLogin ){
+        navigate("/login")
+      }
       return;
     }
 

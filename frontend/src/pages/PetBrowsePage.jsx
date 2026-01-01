@@ -6,7 +6,7 @@ import PetDetailPage from './PetDetailPage';
 import { useNavigate } from 'react-router-dom';
 
 
-export default function PetBrowsePage({ onNavigateToLogin }) {
+export default function PetBrowsePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -182,8 +182,8 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
   const toggleAdoptionStatus = async (petId, isAlreadyRequested) => {
     if (!user || !user.id) {
       const shouldLogin = window.confirm("Please login to adopt! Would you like to go to the login page?");
-      if (shouldLogin && onNavigateToLogin) {
-        onNavigateToLogin();
+      if (shouldLogin) {
+        navigate("/login")
       }
       return;
     }
@@ -241,7 +241,6 @@ export default function PetBrowsePage({ onNavigateToLogin }) {
         onRequestSubmitted={() => {
           if (user?.id) fetchMyRequests(user.id);
         }}
-        onNavigateToLogin={onNavigateToLogin}
       />
     );
   }
