@@ -101,6 +101,9 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+    const aiRoutes = require('./routes/ai');
+    app.use('/api/ai', aiRoutes);
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ 

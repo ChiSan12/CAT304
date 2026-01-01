@@ -127,7 +127,7 @@ export default function ReportPage() {
     if (!user) {
       navigate("/login");
     }
-  }, [user]);
+  }, [user, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pt-24">

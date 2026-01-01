@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Heart,
   PawPrint,
@@ -7,6 +7,8 @@ import {
   XCircle,
   Calendar,
   TrendingUp,
+  AlertCircle,
+  Settings
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -30,17 +32,9 @@ export default function MyDashboard() {
     requests: [],
     adoptedPets: [],
   });
+  const [adopter, setAdopter] = useState(null);
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/login");
-    }
-
-    if (user?.id) loadDashboard();
-  }, [user]);
-
-  const loadDashboard = async () => {
-    // 1. Safety check: Stop if user isn't loaded yet to fix the "undefined" error in your console
+  const loadDashboard = useCallback(async () => {
     if (!user || !user.id) return;
 
     try {
@@ -49,21 +43,20 @@ export default function MyDashboard() {
       const data = await res.json();
 
       if (data.success) {
+        setAdopter(data.adopter);
         const requests = data.adopter.adoptionRequests || [];
         const dbAdopted = data.adopter.adoptedPets || [];
 
-        // 2. THE FIX: Treat 'Approved' requests as Adopted pets
-        // This takes any request marked 'Approved' and adds it to the adopted list
+        // Treat 'Approved' requests as Adopted pets
         const approvedAsAdopted = requests
           .filter((r) => r.status === "Approved")
           .map((r) => ({
             petId: r.petId,
-            adoptionDate: r.requestDate, // Use request date since adoption date isn't set yet
+            adoptionDate: r.requestDate,
             _id: r._id,
           }));
 
-        // Combine the actual database adopted pets with the approved requests
-        // Using a Map to remove duplicates based on petId, just in case
+        // Combine adopted pets
         const uniqueAdoptedMap = new Map();
         [...dbAdopted, ...approvedAsAdopted].forEach((item) => {
           if (item.petId?._id) {
@@ -76,16 +69,13 @@ export default function MyDashboard() {
         setDashboardData({
           stats: {
             totalRequests: requests.length,
-            pendingRequests: requests.filter((r) => r.status === "Pending")
-              .length,
-            approvedRequests: requests.filter((r) => r.status === "Approved")
-              .length,
-            rejectedRequests: requests.filter((r) => r.status === "Rejected")
-              .length,
-            adoptedPets: allAdopted.length, // Update the count
+            pendingRequests: requests.filter((r) => r.status === "Pending").length,
+            approvedRequests: requests.filter((r) => r.status === "Approved").length,
+            rejectedRequests: requests.filter((r) => r.status === "Rejected").length,
+            adoptedPets: allAdopted.length,
           },
           requests: requests,
-          adoptedPets: allAdopted, // Update the list
+          adoptedPets: allAdopted,
         });
       }
     } catch (err) {
@@ -93,7 +83,16 @@ export default function MyDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+  if (!user) {
+    navigate("/login");
+    return;
+  }
+
+  loadDashboard();
+  }, [user, navigate, loadDashboard]);
 
   if (viewCarePet) {
     return (
@@ -123,40 +122,6 @@ export default function MyDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <StatCard
-            icon={Heart}
-            label="Total Requests"
-            value={dashboardData.stats.totalRequests}
-            color="orange"
-          />
-          <StatCard
-            icon={Clock}
-            label="Pending"
-            value={dashboardData.stats.pendingRequests}
-            color="yellow"
-          />
-          <StatCard
-            icon={CheckCircle}
-            label="Approved"
-            value={dashboardData.stats.approvedRequests}
-            color="green"
-          />
-          <StatCard
-            icon={XCircle}
-            label="Rejected"
-            value={dashboardData.stats.rejectedRequests}
-            color="red"
-          />
-          <StatCard
-            icon={PawPrint}
-            label="Adopted"
-            value={dashboardData.stats.adoptedPets}
-            color="purple"
-          />
-        </div>
-
         {/* Tabs */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="flex border-b border-gray-200">
