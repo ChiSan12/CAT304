@@ -8,10 +8,16 @@ import {
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useEffect } from "react";
 
 export default function ShelterLayout({ children }) {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+
+  useEffect(() => {
+    if (!user) navigate("/admin/login");
+    if (user?.role !== "shelter") navigate("/");
+  }, [user, navigate]);
 
   return (
     <div className="flex flex-1 bg-gray-100">

@@ -22,6 +22,7 @@ import ChatBot from "./components/ChatBot";
 import "./styles/HomePage.css";
 import "./styles/PetStyles.css";
 import ShelterSettingPage from "./pages/ShelterSettingPage";
+import PetDetailPage from "./pages/PetDetailPage";
 
 function App() {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ function App() {
             </NavLink>
 
             {/* Browse & Report (Available to Everyone or just Users) */}
-            <NavLink className="nav-button" to="/browse">
+            <NavLink className="nav-button" to="/pets">
               Browse Pets
             </NavLink>
 
@@ -102,7 +103,8 @@ function App() {
       <main className="flex-grow flex flex-col">
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/browse" element={<PetBrowsePage />} />
+          <Route path="/pets" element={<PetBrowsePage />} />
+          <Route path="/pets/:petId" element={<PetDetailPage />} />
           <Route path="/report" element={<ReportPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />

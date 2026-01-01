@@ -25,41 +25,34 @@ export default function ShelterRequestPage() {
   };
 
   const handleRequestAction = async (requestId, action) => {
-
-  if (action === "approve" && !window.confirm("Approve this request?")) return;
-  if (action === "reject" && !window.confirm("Reject this request?")) return;
-  
-  try {
-    const res = await fetch(
-      `http://localhost:5000/api/shelters/${SHELTER_ID}/requests/${requestId}/${action}`,
-      {
-        method: "PATCH",
-      }
-    );
-
-    const data = await res.json();
-    if (!data.success) {
-      alert(data.message || "Action failed");
+    if (action === "approve" && !window.confirm("Approve this request?"))
       return;
-    }
+    if (action === "reject" && !window.confirm("Reject this request?")) return;
 
-    refreshData();
-  } catch (err) {
-    console.error(err);
-  }
-};
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/shelters/${SHELTER_ID}/requests/${requestId}/${action}`,
+        {
+          method: "PATCH",
+        }
+      );
+
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || "Action failed");
+        return;
+      }
+
+      refreshData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     if (SHELTER_ID) refreshData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [SHELTER_ID]);
-
-  if (!user || user.role !== "shelter")
-    return (
-      <div className="p-20 text-center text-red-600 font-bold">
-        Access Denied
-      </div>
-    );
 
   return (
     <ShelterLayout>
@@ -125,14 +118,16 @@ export default function ShelterRequestPage() {
                           <div className="flex gap-2">
                             <button
                               onClick={() =>
-                                handleRequestAction(req.requestId, "approve")}
+                                handleRequestAction(req.requestId, "approve")
+                              }
                               className="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors"
                             >
                               Approve
                             </button>
                             <button
                               onClick={() =>
-                                handleRequestAction(req.requestId, "reject")}
+                                handleRequestAction(req.requestId, "reject")
+                              }
                               className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
                             >
                               Reject

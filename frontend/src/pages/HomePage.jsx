@@ -31,7 +31,7 @@ export default function HomePage({ goTo }) {
 
             <div className="mt-8 flex gap-4">
               <NavLink
-                to="/browse"
+                to="/pets"
                 className="px-8 py-4 bg-gray-300 text-gray-900 text-base rounded-lg font-bold hover:bg-gray-200 transition"
               >
                 🐾 Find a Pet
