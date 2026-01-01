@@ -43,17 +43,22 @@ app.post('/api/chat', async (req, res) => {
 
     // Retrieve chat history by user or session
     let history;
-    if (userId) {
+
+    if (typeof userId === 'string' && userId !== 'undefined' && userId.trim() !== '') {
       history = await ChatHistory.findOne({ userId });
-    } else {
+    } else if (typeof sessionId === 'string' && sessionId.trim() !== '') {
       history = await ChatHistory.findOne({ sessionId });
+    } else {
+      return res.status(400).json({
+        error: 'No valid userId or sessionId provided'
+      });
     }
 
     // Create new history if not found
     if (!history) {
       history = new ChatHistory({
-        userId: userId || null,
-        sessionId: sessionId || null,
+        userId: userId ? userId : null,
+        sessionId: userId ? null : sessionId,
         messages: []
       });
     }
@@ -62,7 +67,7 @@ app.post('/api/chat', async (req, res) => {
     // This context is provided to the AI model to generate coherent responses
     const contents = [
       ...history.messages.map(m => ({
-        role: m.role,
+        role: m.role === "assistant" ? "model" : m.role,
         parts: [{ text: m.content }]
       })),
       {
@@ -83,7 +88,7 @@ app.post('/api/chat', async (req, res) => {
     // Append the latest user message and AI response to conversation memory
     history.messages.push(
       { role: "user", content: message },
-      { role: "assistant", content: reply }
+      { role: "model", content: reply }
     );
 
     // Retain only the most recent 20 messages to control memory size
@@ -110,6 +115,23 @@ app.get('/api/health', (req, res) => {
     status: 'OK', 
     message: 'PET Found Us API is running',
     timestamp: new Date().toISOString()
+  });
+});
+
+
+app.get('/api/chat/history', async (req, res) => {
+  const { userId, sessionId } = req.query;
+
+  let history = null;
+
+  if (typeof userId === 'string' && userId !== 'undefined' && userId.trim() !== '') {
+    history = await ChatHistory.findOne({ userId });
+  } else if (typeof sessionId === 'string' && sessionId.trim() !== '') {
+    history = await ChatHistory.findOne({ sessionId });
+  }
+
+  res.json({
+    messages: history?.messages || []
   });
 });
 
