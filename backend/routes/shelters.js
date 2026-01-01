@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const Pet = require('../models/pet');
 const Shelter = require('../models/shelter');
 const Adopter = require('../models/adopter');
+const CareReminder = require('../models/careReminder');
 
 // 0. SHELTER LOGIN
 router.post('/login', async (req, res) => {
@@ -209,6 +210,8 @@ router.patch('/:shelterId/requests/:requestId/approve', async (req, res) => {
     // 2. Pet set as ddopted
     pet.adoptionStatus = 'Adopted';
 
+    await generateVaccinationReminder(pet);
+
     // 3. Reject same pet pending request
     await Adopter.updateMany(
       { 'adoptionRequests.petId': pet._id },
@@ -290,5 +293,35 @@ router.patch('/:shelterId/requests/:requestId/reject', async (req, res) => {
     });
   }
 });
+
+const generateVaccinationReminder = async (pet) => {
+  const health = pet.healthStatus || {};
+
+  let dueDate;
+  let title;
+
+  if (health.nextVaccinationDue) {
+    dueDate = new Date(health.nextVaccinationDue);
+    title = 'Vaccination Reminder';
+  } else if (health.vaccinated === false) {
+    dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 7);
+    title = 'Initial Vaccination Required';
+  } else {
+    dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 14);
+    title = 'Vaccination Check';
+  }
+
+  await CareReminder.create({
+    petId: pet._id,
+    type: 'vaccination',
+    title,
+    dueDate,
+    status: 'pending',
+    createdBy: 'system',
+    notes: 'Automatically generated after adoption',
+  });
+};
 
 module.exports = router;

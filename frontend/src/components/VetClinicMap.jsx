@@ -67,33 +67,30 @@ export default function VetClinicMap() {
     }
   };
 
-  useEffect(() => {
+    useEffect(() => {
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser');
-      setLoading(false);
-      return;
+        setError('Geolocation is not supported by your browser');
+        setLoading(false);
+        return;
     }
 
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const coords = [pos.coords.latitude, pos.coords.longitude];
-        setLocation(coords);
-
-        try {
-          await fetchClinics(coords[0], coords[1]);
-
-        } catch (err) {
-          setError('Failed to load nearby clinics');
-        } finally {
-          setLoading(false);
-        }
-      },
-      () => {
+        (pos) => {
+        setLocation([pos.coords.latitude, pos.coords.longitude]);
+        setLoading(false);
+        },
+        () => {
         setError('Unable to access your location');
         setLoading(false);
-      }
+        }
     );
-  }, []);
+    }, []);
+
+    useEffect(() => {
+        if (!location) return;
+
+        fetchClinics(location[0], location[1]);
+    }, [location]);
 
   /* ================= STATES ================= */
 
@@ -139,8 +136,11 @@ export default function VetClinicMap() {
   {clinics.map(c => (
     <Marker
       key={c._id}
-      position={[c.location.lat, c.location.lng]}
-      eventHandlers={{
+      position={[
+        c.location.coordinates[1], // lat
+        c.location.coordinates[0], // lng
+    ]}
+            eventHandlers={{
         click: () => setSelectedClinic(c),
       }}
     >
