@@ -165,6 +165,28 @@ export default function ShelterDashboard() {
               color="text-red-600"
             />
           </div>
+          <div className="flex items-center justify-end">
+            <Button
+              className="rounded-l-md"
+              isActive={dayCount === 6}
+              onClick={() => setDayCount(6)}
+            >
+              7 Days
+            </Button>
+            <Button isActive={dayCount === 13} onClick={() => setDayCount(13)}>
+              14 Days
+            </Button>
+            <Button isActive={dayCount === 29} onClick={() => setDayCount(29)}>
+              1 Month
+            </Button>
+            <Button
+              className="rounded-r-md"
+              isActive={dayCount === 59}
+              onClick={() => setDayCount(59)}
+            >
+              2 Months
+            </Button>
+          </div>
           <div className="w-full">
             <ReactApexChart
               options={data.options}
@@ -187,5 +209,16 @@ function StatCard({ label, value, color = "text-gray-900" }) {
       </h3>
       <p className={`text-3xl font-extrabold mt-2 ${color}`}>{value}</p>
     </div>
+  );
+}
+
+function Button({ children, onClick, className, isActive }) {
+  return (
+    <button
+      className={`cursor-pointer border border-orange-600 py-1 px-4 ${className ?? ""} ${isActive ? "bg-orange-600 text-white" : ""}`}
+      onClick={onClick}
+    >
+      {children}
+    </button>
   );
 }
