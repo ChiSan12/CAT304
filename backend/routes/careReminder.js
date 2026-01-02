@@ -29,6 +29,52 @@ router.get('/pet/:petId', async (req, res) => {
   }
 });
 
+router.post('/manual', async (req, res) => {
+  try {
+    const {
+      petId,
+      adopterId,
+      shelterId,
+      title,
+      description,
+      dueDate,
+      category
+    } = req.body;
+
+    if (!petId || !adopterId || !shelterId || !title || !dueDate || !category) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    const reminder = await CareReminder.create({
+      petId,
+      adopterId,
+      shelterId,
+      title,
+      description,
+      category,
+      dueDate,
+      status: 'Pending',
+      createdBy: 'Shelter',
+      updatedBy: 'Shelter'
+    });
+
+    res.json({
+      success: true,
+      reminder
+    });
+
+  } catch (err) {
+    console.error('Create manual reminder error:', err);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
+
 /**
  * ==================================
  * MARK reminder as completed (Adopter)
@@ -72,14 +118,25 @@ router.put('/:id/complete', async (req, res) => {
  */
 router.put('/:id', async (req, res) => {
   try {
-    const { dueDate, status, isActive } = req.body;
+    const {
+      title,
+      description,
+      dueDate,
+      status,
+      isActive
+    } = req.body;
 
     const reminder = await CareReminder.findByIdAndUpdate(
       req.params.id,
       {
+        ...(title && { title }),
+        ...(description && { description }),
         ...(dueDate && { dueDate }),
-        ...(status && { status }),       // Must be Pending / Completed / Overdue
-        ...(typeof isActive === 'boolean' && { isActive })
+        ...(status && { status }),
+        ...(typeof isActive === 'boolean' && { isActive }),
+
+        // 🔥 IMPORTANT
+        updatedBy: 'Shelter'
       },
       { new: true }
     );
@@ -95,11 +152,12 @@ router.put('/:id', async (req, res) => {
       success: true,
       reminder
     });
+
   } catch (err) {
     console.error('Update reminder error:', err);
     res.status(500).json({
       success: false,
-      message: 'Failed to update reminder'
+      message: err.message
     });
   }
 });

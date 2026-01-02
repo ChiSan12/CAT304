@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import CareReminderList from '../components/CareReminderList';
 import VetClinicMap from '../components/VetClinicMap';
+import { useAuth } from '../context/AuthContext';
 
 import {
   TrainingTips,
@@ -11,6 +12,7 @@ import {
 /* ================= POST-ADOPTION MODULE ================= */
 
 export default function CarePlanPage({ pet, onClose }) {
+  const { user } = useAuth();
   const [isLarge, setIsLarge] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
   const contentRef = React.useRef(null);
@@ -134,7 +136,7 @@ export default function CarePlanPage({ pet, onClose }) {
           {/* 📸 PET UPDATE */}
           {activeSection === 'update' && (
             <div className="max-w-4xl mx-auto animate-fade-in">
-              <PetUpdateCard pet={pet} />
+              <PetUpdateCard pet={pet} user={user} />
             </div>
           )}
 
@@ -439,7 +441,7 @@ export default function CarePlanPage({ pet, onClose }) {
 //   );
 // }
 
-function PetUpdateCard({ pet }) {
+function PetUpdateCard({ pet, user }) {
   const [notes, setNotes] = useState('');
   const [weight, setWeight] = useState('');
   const [condition, setCondition] = useState('');
@@ -461,13 +463,13 @@ function PetUpdateCard({ pet }) {
 
     console.log({
       petId: pet.petId?._id,
-      adopterId: pet.adopterId,
+      adopterId: user.id,
       shelterId: pet.petId?.shelterId
     });
 
     const formData = new FormData();
     formData.append('petId', pet.petId._id);
-    formData.append('adopterId', pet.adopterId);
+    formData.append('adopterId', user.id);
     formData.append('shelterId', pet.petId.shelterId);
 
     formData.append('notes', notes);

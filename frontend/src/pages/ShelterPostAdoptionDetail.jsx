@@ -22,7 +22,7 @@ export default function ShelterPostAdoptionDetail() {
   return (
     <ShelterLayout>
       <div className="flex-1 p-8 ml-64 space-y-10">
-        <h1 className="text-2xl font-bold">Post-Adoption Timeline</h1>
+        <h1 className="text-3xl font-bold">Post-Adoption Timeline</h1>
 
         {/* 🔔 REMINDERS */}
         <section>

@@ -15,7 +15,7 @@ export default function ShelterPostAdoptionPage() {
   return (
     <ShelterLayout>
       <div className="flex-1 p-8 ml-64">
-        <h1 className="text-2xl font-bold mb-6">
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">
           Post-Adoption Monitoring
         </h1>
 

@@ -22,7 +22,6 @@ router.post(
   '/',
   upload.array('images', 5),
   async (req, res) => {
-    // console.log('Pet update files:', req.files?.length);
 
     try {
       const {
@@ -34,6 +33,14 @@ router.post(
         condition
       } = req.body;
 
+      console.log('🐾 PET UPDATE RECEIVED:', {
+        petId,
+        adopterId,
+        shelterId,
+        notes,
+        files: req.files?.length
+      });
+
       if (!petId || !adopterId || !shelterId || !notes) {
         return res.status(400).json({
           success: false,
@@ -41,9 +48,10 @@ router.post(
         });
       }
 
-      const images = req.files?.map(f =>
-        `data:${f.mimetype};base64,${f.buffer.toString('base64')}`
-      ) || [];
+      const images = req.files?.map(f => ({
+        data: f.buffer,
+        contentType: f.mimetype
+      })) || [];
 
       const update = await PetUpdate.create({
         petId,

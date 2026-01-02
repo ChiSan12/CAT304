@@ -78,6 +78,12 @@ const careReminderSchema = new mongoose.Schema(
       default: "System"
     },
 
+    updatedBy: {
+      type: String,
+      enum: ["Shelter", "System"],
+      default: "System"
+    },
+
     isActive: {
       type: Boolean,
       default: true
