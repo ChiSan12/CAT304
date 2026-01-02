@@ -77,7 +77,7 @@ router.get('/', async (req, res) => {
       return doc;
     });
 
-    res.json({ reports: formattedReports });
+    res.json({success: true, reports: formattedReports });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
