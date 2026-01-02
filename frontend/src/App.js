@@ -22,7 +22,7 @@ import MyReports from "./pages/MyReports";
 
 // Components
 import ChatBot from "./components/ChatBot";
-
+import ScrollToTop from "./components/ScrollToTop";
 import "./styles/HomePage.css";
 import "./styles/PetStyles.css";
 import ShelterSettingPage from "./pages/ShelterSettingPage";
@@ -105,6 +105,7 @@ function App() {
 
       {/* ================= PAGE CONTENT ================= */}
       <main className="flex-grow flex flex-col">
+        <ScrollToTop /> 
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/pets" element={<PetBrowsePage />} />

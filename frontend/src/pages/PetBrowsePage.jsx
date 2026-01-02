@@ -30,15 +30,61 @@ const isProfileComplete =
   prefs.preferredAge?.length > 0 &&
   !!prefs.experienceLevel;
 
-  // Initial Fetch
-  useEffect(() => {
-    fetchPets();
+// Initial Fetch
+useEffect(() => {
+  const initializePage = async () => {
+    // 1. Fetch pets
+    await fetchPets();
+    // 2. Fetch requests
     if (user && user.id) {
-      fetchMyRequests(user.id);
+      await fetchMyRequests(user.id);
     } else {
       setMyRequests([]);
     }
-  }, [user]);
+
+
+    const savedAIMatch = sessionStorage.getItem('aiMatchActive');
+    const savedAIMatchPets = sessionStorage.getItem('aiMatchPets');
+    const savedFilter = sessionStorage.getItem('filterActive');
+    const savedFilters = sessionStorage.getItem('filters');
+    const savedFilteredPets = sessionStorage.getItem('filteredPets');
+  
+    if (savedAIMatch === 'true' && savedAIMatchPets) {
+      // Retrieve AI Match
+      try {
+        const parsedPets = JSON.parse(savedAIMatchPets);
+        setFilteredPets(parsedPets);
+        setShowAIMatch(true);
+      } catch (e) {
+        console.error('Failed to restore AI match:', e);
+      }
+    } else if (savedFilter === 'true' && savedFilters && savedFilteredPets) {
+      // Retrive Filter
+      try {
+        const parsedFilters = JSON.parse(savedFilters);
+        const parsedPets = JSON.parse(savedFilteredPets);
+        setFilters(parsedFilters);
+        setFilteredPets(parsedPets);
+      } catch (e) {
+        console.error('Failed to restore filters:', e);
+      }
+    }
+  };
+
+  initializePage();
+}, [user]);
+
+useEffect(() => {
+  const saved = sessionStorage.getItem('browseScrollPosition');
+
+  if (saved && !loading && filteredPets.length > 0) {
+    requestAnimationFrame(() => {
+      window.scrollTo(0, parseInt(saved, 10));
+      sessionStorage.removeItem('browseScrollPosition');
+    });
+  }
+}, [loading, filteredPets]);
+
 
   const fetchPets = async () => {
     setLoading(true);
@@ -49,8 +95,12 @@ const isProfileComplete =
       const data = await response.json();
       if (data.success) {
         setPets(data.pets);
-        setFilteredPets(data.pets);
-      }
+        const savedAIMatch = sessionStorage.getItem('aiMatchActive');
+        const savedFilter = sessionStorage.getItem('filterActive');
+        if (savedAIMatch !== 'true' && savedFilter !== 'true') {
+          setFilteredPets(data.pets);
+        }
+      }  
     } catch (error) {
       console.error("Error fetching pets:", error);
     } finally {
@@ -89,6 +139,11 @@ const isProfileComplete =
     setFilteredPets(result);
     setShowAIMatch(false); // Turn off Smart Matching banner when manually filtering
     setMatchingWarning(null); // Clear any warnings
+    sessionStorage.setItem('filterActive', 'true');
+    sessionStorage.setItem('filters', JSON.stringify(filters));
+    sessionStorage.setItem('filteredPets', JSON.stringify(result));
+    sessionStorage.removeItem('aiMatchActive');
+    sessionStorage.removeItem('aiMatchPets');
   };
 
   //  Improved Smart Matching with Preferences Check
@@ -125,6 +180,12 @@ const isProfileComplete =
       if (data.success) { 
         setFilteredPets(data.pets); 
         setShowAIMatch(true);
+
+        sessionStorage.setItem('aiMatchActive', 'true');
+        sessionStorage.setItem('aiMatchPets', JSON.stringify(data.pets));
+        sessionStorage.removeItem('filterActive');
+        sessionStorage.removeItem('filters');
+        sessionStorage.removeItem('filteredPets');
         
         //  Show warning if backend sent one
         if (data.warning) {
@@ -149,6 +210,11 @@ const isProfileComplete =
     setFilteredPets(pets);
     setShowAIMatch(false);
     setMatchingWarning(null);
+    sessionStorage.removeItem('aiMatchActive');
+    sessionStorage.removeItem('aiMatchPets');
+    sessionStorage.removeItem('filterActive');
+    sessionStorage.removeItem('filters');
+    sessionStorage.removeItem('filteredPets');
   };
 
   // Adoption Request
