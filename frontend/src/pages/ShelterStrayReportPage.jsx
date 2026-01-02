@@ -199,8 +199,8 @@ export default function ShelterStrayReportPage() {
                             r.status === "Pending"
                               ? "bg-yellow-100 text-yellow-800"
                               : r.status === "Rescued"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-gray-100 text-gray-700"
+                                ? "bg-purple-100 text-purple-800"
+                                : "bg-gray-100 text-gray-700"
                           }`}
                         >
                           <option value="Pending">Pending</option>

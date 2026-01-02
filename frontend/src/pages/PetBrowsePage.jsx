@@ -330,7 +330,7 @@ const isProfileComplete =
                 showScore={showAIMatch}
                 isRequested={myRequests.includes(pet._id)}
                 onToggleRequest={toggleAdoptionStatus}
-                onViewDetails={() => navigate(`/pets/${pet._id}`)}
+                // onViewDetails={() => navigate(`/pets/${pet._id}`)}
               />
             ))}
           </div>

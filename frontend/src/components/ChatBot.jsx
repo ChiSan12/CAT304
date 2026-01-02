@@ -1,38 +1,68 @@
 import React, { useState, useRef, useEffect,useLayoutEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
+
+
+const WELCOME_MESSAGE = {
+  text: "Hello! I'm your AI assistant. How can I help you find your new best friend today? 🐶🐱",
+  sender: "bot"
+};
+
 const ChatBot = () => {
   // Get the currently logged-in user from AuthContext
   const { user } = useAuth();
   // Generate a unique localStorage key per user
   // This prevents different users from seeing each other's chat UI
-  const storageKey = user ? `chatUI_${user._id}` : 'chatUI_guest';
   const [isOpen, setIsOpen] = useState(false); // Toggle chat window
-  const [messages, setMessages] = useState([
-    { text: "Hello! I'm your AI assistant. How can I help you find your new best friend today? 🐶🐱", sender: "bot" }
-  ]);
+  const [messages, setMessages] = useState([WELCOME_MESSAGE]);
   // Store user input text
   const [inputValue, setInputValue] = useState("");
   // Loading state while waiting for AI response
   const [isLoading, setIsLoading] = useState(false);
 
   // Generate a temporary session ID for guest users
-  const sessionId = useRef(
-    localStorage.getItem('chatSessionId') ||
-    crypto.randomUUID()
+  const [guestSessionId, setGuestSessionId] = useState(
+    localStorage.getItem('chatSessionId') || crypto.randomUUID()
   );
 
   useEffect(() => {
-    localStorage.setItem('chatSessionId', sessionId.current);
-  }, []);
+  if (!user) return;
 
-  // Load previous chat UI from localStorage when user changes or page refreshes
-  useEffect(() => {
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      setMessages(JSON.parse(saved));
-    }
-  }, [storageKey]);
+  setMessages([WELCOME_MESSAGE]);
+
+  fetch(`http://localhost:5000/api/chat/history?userId=${user.id}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.messages?.length) {
+        setMessages(
+          data.messages.map(m => ({
+            text: m.content,
+            sender: m.role === 'user' ? 'user' : 'bot'
+          }))
+        );
+      }
+    });
+}, [user]);
+
+
+useEffect(() => {
+  if (user) return;
+
+  setMessages([WELCOME_MESSAGE]);
+
+  fetch(`http://localhost:5000/api/chat/history?sessionId=${guestSessionId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.messages?.length) {
+        setMessages(
+          data.messages.map(m => ({
+            text: m.content,
+            sender: m.role === 'user' ? 'user' : 'bot'
+          }))
+        );
+      }
+    });
+}, [user, guestSessionId]);
 
   // Auto-scroll to bottom
   const messagesAreaRef = useRef(null);
@@ -49,12 +79,17 @@ const ChatBot = () => {
 
   // Persist chat UI messages in localStorage for page refresh recovery
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(messages));
-  }, [messages,storageKey]);
+    localStorage.setItem('chatSessionId', guestSessionId);
+  }, [guestSessionId]);
 
   // Handle Send Message
   const handleSend = async () => {
     if (!inputValue.trim()) return;
+
+    if (!user && !guestSessionId) {
+      console.warn("No userId or sessionId yet");
+      return;
+    }
 
     // 1. Show user message immediately
     const userMessage = { text: inputValue, sender: "user" };
@@ -67,7 +102,13 @@ const ChatBot = () => {
       const response = await fetch('http://localhost:5000/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage.text,userId: user?._id, sessionId: sessionId.current}),
+        body: JSON.stringify({
+          message: userMessage.text,
+          ...(user
+            ? { userId: user.id }
+            : { sessionId: guestSessionId }
+          )
+        }),
       });
 
       const data = await response.json();
