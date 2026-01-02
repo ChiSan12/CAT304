@@ -182,7 +182,7 @@ export default function HomePage({ goTo }) {
             CONTACT US
           </h2>
 
-          {/* <div className="space-y-6 text-left">
+          <div className="space-y-6 text-left">
             <div className="flex items-center gap-4">
               <Mail size={24} />
               <span>admin@petfoundus.com</span>
@@ -201,8 +201,8 @@ export default function HomePage({ goTo }) {
                 Gelugor, Penang.
               </span>
             </div>
-          </div> */}
-          <div className="space-y-6 text-left">
+          </div>
+          {/* <div className="space-y-6 text-left">
             {contactLoading && (
               <p className="text-gray-400 text-sm">Loading contact info…</p>
             )}
@@ -225,7 +225,7 @@ export default function HomePage({ goTo }) {
                 </div>
               </>
             )}
-          </div>
+          </div> */}
         </div>
 
         <p className="text-center text-sm text-gray-400 mt-16">

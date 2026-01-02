@@ -34,6 +34,39 @@ router.get('/adopted-pets', async (req, res) => {
   }
 });
 
+// GET public shelter contact (Footer)
+router.get('/public/contact', async (req, res) => {
+  try {
+    const shelter = await Shelter.findOne({ isAdmin: true }).select(
+      'email phone address name'
+    );
+
+    if (!shelter) {
+      return res.status(404).json({
+        success: false,
+        message: 'Shelter not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      contact: {
+        email: shelter.email,
+        phone: shelter.phone,
+        address: shelter.address,
+        name: shelter.name
+      }
+    });
+
+  } catch (err) {
+    console.error('Fetch shelter contact error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to load shelter contact'
+    });
+  }
+});
+
 // 1. DASHBOARD STATS
 router.get('/:shelterId/stats', async (req, res) => {
   try {
@@ -174,41 +207,6 @@ router.get('/:shelterId', async (req, res) => {
     const shelter = await Shelter.findById(req.params.shelterId).select('-password');
     res.json({ success: true, shelter });
   } catch (error) { res.status(500).json({ success: false, message: error.message }); }
-});
-
-// ================================
-// GET public shelter contact (Footer)
-// ================================
-router.get('/public/contact', async (req, res) => {
-  try {
-    const shelter = await Shelter.findOne({ isAdmin: true }).select(
-      'email phone address name'
-    );
-
-    if (!shelter) {
-      return res.status(404).json({
-        success: false,
-        message: 'Shelter not found'
-      });
-    }
-
-    res.json({
-      success: true,
-      contact: {
-        email: shelter.email,
-        phone: shelter.phone,
-        address: shelter.address,
-        name: shelter.name
-      }
-    });
-
-  } catch (err) {
-    console.error('Fetch shelter contact error:', err);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to load shelter contact'
-    });
-  }
 });
 
 // 9. UPDATE PROFILE
