@@ -153,7 +153,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-
 app.get('/api/chat/history', async (req, res) => {
   const { userId, sessionId } = req.query;
 
