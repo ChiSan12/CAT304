@@ -31,17 +31,19 @@ router.get('/pet/:petId', async (req, res) => {
 
 router.post('/manual', async (req, res) => {
   try {
+    console.log('📥 MANUAL REMINDER BODY:', req.body);
+
     const {
       petId,
-      adopterId,
       shelterId,
       title,
-      description,
       dueDate,
-      category
+      category,
+      notes
     } = req.body;
 
-    if (!petId || !adopterId || !shelterId || !title || !dueDate || !category) {
+    // ✅ minimal validation
+    if (!petId || !shelterId || !title || !dueDate || !category) {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields'
@@ -50,15 +52,14 @@ router.post('/manual', async (req, res) => {
 
     const reminder = await CareReminder.create({
       petId,
-      adopterId,
       shelterId,
       title,
-      description,
-      category,
       dueDate,
+      category,
+      description: notes,
       status: 'Pending',
-      createdBy: 'Shelter',
-      updatedBy: 'Shelter'
+      createdBy: 'Shelter'
+      // ❌ NO adopterId here (correct)
     });
 
     res.json({
@@ -67,7 +68,7 @@ router.post('/manual', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Create manual reminder error:', err);
+    console.error('❌ MANUAL REMINDER ERROR:', err);
     res.status(500).json({
       success: false,
       message: err.message
@@ -155,6 +156,39 @@ router.put('/:id', async (req, res) => {
 
   } catch (err) {
     console.error('Update reminder error:', err);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
+});
+/**
+ * ==================================
+ * SHELTER: delete (deactivate) reminder
+ * ==================================
+ */
+router.delete('/:id', async (req, res) => {
+  try {
+    const reminder = await CareReminder.findByIdAndUpdate(
+      req.params.id,
+      { isActive: false },
+      { new: true }
+    );
+
+    if (!reminder) {
+      return res.status(404).json({
+        success: false,
+        message: 'Reminder not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Reminder deleted successfully'
+    });
+
+  } catch (err) {
+    console.error('Delete reminder error:', err);
     res.status(500).json({
       success: false,
       message: err.message

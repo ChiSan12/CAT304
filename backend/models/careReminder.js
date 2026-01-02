@@ -20,7 +20,7 @@ const careReminderSchema = new mongoose.Schema(
     adopterId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Adopter",
-      required: true
+      required: false
     },
 
     shelterId: {

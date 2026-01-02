@@ -1,11 +1,15 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useAuth } from '../context/AuthContext';
 import ShelterLayout from "../components/ShelterLayout";
+import CareReminderList from '../components/CareReminderList';
 
 export default function ShelterPostAdoptionDetail() {
   const { petId } = useParams();
+  const { user } = useAuth(); 
+  const shelterId = user?.id; 
   const [updates, setUpdates] = useState([]);
-  const [reminders, setReminders] = useState([]);
+  // const [reminders, setReminders] = useState([]);
 
     useEffect(() => {
     // Fetch adopter updates
@@ -14,9 +18,10 @@ export default function ShelterPostAdoptionDetail() {
         .then(data => setUpdates(data.updates || []));
 
     // Fetch care reminders
-    fetch(`http://localhost:5000/api/reminders/pet/${petId}`)
-        .then(res => res.json())
-        .then(data => setReminders(data.reminders || []));
+    // fetch(`http://localhost:5000/api/reminders/pet/${petId}`)
+    //     .then(res => res.json())
+    //     .then(data => setReminders(data.reminders || []));
+    // }, [petId]);
     }, [petId]);
 
   return (
@@ -27,9 +32,13 @@ export default function ShelterPostAdoptionDetail() {
         {/* 🔔 REMINDERS */}
         <section>
           <h2 className="font-semibold mb-4">Care Reminders</h2>
-          {reminders.map(r => (
-            <ReminderCard key={r._id} r={r} />
-          ))}
+          {/* 🔥 USE SHARED COMPONENT WITH ROLE */}
+          <CareReminderList
+            petId={petId}
+            shelterId={shelterId}
+            // adopterId={adopterId}
+            role="shelter"
+          />
         </section>
 
         {/* 📸 UPDATES */}
@@ -44,17 +53,17 @@ export default function ShelterPostAdoptionDetail() {
   );
 }
 
-function ReminderCard({ r }) {
-  return (
-    <div className="bg-white border rounded-lg p-4 mb-3">
-      <h4 className="font-medium">{r.title}</h4>
-      <p className="text-sm text-gray-500">
-        Due: {new Date(r.dueDate).toLocaleDateString()}
-      </p>
-      <span className="text-xs text-orange-600">{r.status}</span>
-    </div>
-  );
-}
+// function ReminderCard({ r }) {
+//   return (
+//     <div className="bg-white border rounded-lg p-4 mb-3">
+//       <h4 className="font-medium">{r.title}</h4>
+//       <p className="text-sm text-gray-500">
+//         Due: {new Date(r.dueDate).toLocaleDateString()}
+//       </p>
+//       <span className="text-xs text-orange-600">{r.status}</span>
+//     </div>
+//   );
+// }
 
 function UpdateCard({ u }) {
   return (

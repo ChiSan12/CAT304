@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext'; 
 
-export default function CareReminderList({ petId, role = 'adopter' }) {
+export default function CareReminderList({ petId, shelterId, adopterId, role = 'adopter' }) {
   const { user } = useAuth();
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,32 +38,66 @@ export default function CareReminderList({ petId, role = 'adopter' }) {
       )
     );
   };
-
   const handleCreateReminder = async () => {
-    await fetch('http://localhost:5000/api/reminders/manual', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        petId,
-        shelterId: user?.id,
-        title,
-        dueDate,
-        category: 'Health Check',
-        description: notes,
-        createdBy: 'Shelter'
-      })
-    });
+    try {
+      const res = await fetch('http://localhost:5000/api/reminders/manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          petId,
+          // adopterId,          
+          shelterId,
+          title,
+          dueDate,
+          category: 'Health Check', 
+          notes
+        })
+      });
 
-    // 🔧 MODIFIED: reset form + reload reminders
-    setShowForm(false);
-    setTitle('');
-    setDueDate('');
-    setNotes('');
-
-    const res = await fetch(`http://localhost:5000/api/reminders/pet/${petId}`);
     const data = await res.json();
-    setReminders(data.reminders || []);
-  };
+
+    if (data.success) {
+      setReminders(prev => [...prev, data.reminder]);
+
+      // Reset UI
+      setShowForm(false);
+      setTitle('');
+      setDueDate('');
+      setNotes('');
+    } else {
+      alert(data.message);
+    }
+
+  } catch (err) {
+    console.error('Create reminder failed:', err);
+  }
+};
+
+  // const handleCreateReminder = async () => {
+  //   await fetch('http://localhost:5000/api/reminders/manual', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify({
+  //       petId,
+  //       shelterId: user?.id,
+  //       title,
+  //       dueDate,
+  //       category: 'Health Check',
+  //       description: notes,
+  //       createdBy: 'Shelter'
+  //     })
+  //   });
+
+  //   // 🔧 MODIFIED: reset form + reload reminders
+  //   setShowForm(false);
+  //   setTitle('');
+  //   setDueDate('');
+  //   setNotes('');
+
+  //   const res = await fetch(`http://localhost:5000/api/reminders/pet/${petId}`);
+  //   const data = await res.json();
+  //   setReminders(data.reminders || []);
+  // };
 
   const getStatus = (reminder) => {
     if (reminder.status === 'Completed') {
@@ -98,6 +132,14 @@ export default function CareReminderList({ petId, role = 'adopter' }) {
       </div>
     );
   }
+
+  const deleteReminder = async (id) => {
+    await fetch(`http://localhost:5000/api/reminders/${id}`, {
+      method: 'DELETE'
+    });
+
+    setReminders(prev => prev.filter(r => r._id !== id));
+  };
 
   return (
     <div className="space-y-4">
@@ -195,6 +237,14 @@ export default function CareReminderList({ petId, role = 'adopter' }) {
                 className="mt-4 px-4 py-2 text-sm rounded-lg bg-[#FF8C42] text-white hover:bg-[#e67e3b]"
               >
                 Mark as Completed
+              </button>
+            )}
+            {role === 'shelter' && (
+              <button
+                onClick={() => deleteReminder(reminder._id)}
+                className="text-xs text-red-500 hover:text-red-700 mt-2"
+              >
+                🗑 Delete
               </button>
             )}
           </div>
