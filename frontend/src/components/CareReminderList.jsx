@@ -73,32 +73,6 @@ export default function CareReminderList({ petId, shelterId, adopterId, role = '
   }
 };
 
-  // const handleCreateReminder = async () => {
-  //   await fetch('http://localhost:5000/api/reminders/manual', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({
-  //       petId,
-  //       shelterId: user?.id,
-  //       title,
-  //       dueDate,
-  //       category: 'Health Check',
-  //       description: notes,
-  //       createdBy: 'Shelter'
-  //     })
-  //   });
-
-  //   // 🔧 MODIFIED: reset form + reload reminders
-  //   setShowForm(false);
-  //   setTitle('');
-  //   setDueDate('');
-  //   setNotes('');
-
-  //   const res = await fetch(`http://localhost:5000/api/reminders/pet/${petId}`);
-  //   const data = await res.json();
-  //   setReminders(data.reminders || []);
-  // };
-
   const getStatus = (reminder) => {
     if (reminder.status === 'Completed') {
       return { text: 'Completed', style: 'bg-green-100 text-green-700' };

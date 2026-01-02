@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   Mail,
@@ -10,8 +10,23 @@ import {
   HeartPulse,
   AlertTriangle,
 } from "lucide-react";
+import HomeCareReminderPreview from "../components/HomeCareReminderPreview";
 
 export default function HomePage({ goTo }) {
+  const [contact, setContact] = useState(null);
+  const [contactLoading, setContactLoading] = useState(true);
+
+  useEffect(() => {
+   fetch("http://localhost:5000/api/shelters/public/contact")
+     .then(res => res.json())
+     .then(data => {
+        if (data.success) {
+         setContact(data.contact);
+        }
+       setContactLoading(false);
+     })
+     .catch(() => setContactLoading(false));
+  }, []);
 
   return (
     <div className="w-full">
@@ -113,7 +128,7 @@ export default function HomePage({ goTo }) {
               more compassionate cities.
             </p>
 
-            <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
               <div className="w-1 h-8 bg-orange-500 rounded-full"></div>
               Why It Matters
             </h3>
@@ -130,23 +145,14 @@ export default function HomePage({ goTo }) {
               <Stat number="200+" label="Stray Reports Logged" />
             </div>
 
-            <div className="mt-auto pt-6 border-t border-orange-100">
-              <p className="text-center text-gray-600 mb-4 font-medium">
-                Ready to make a difference?
-              </p>
-              <div className="flex gap-4 justify-center">
-                <NavLink
-                  to="/pets"
-                  className="px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-xl font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300"
-                >
-                  Adopt Now
-                </NavLink>
-                <NavLink
-                  to="/report"
-                  className="px-6 py-3 bg-white text-orange-500 border-2 border-orange-500 rounded-xl font-semibold hover:bg-orange-50 hover:scale-105 transition-all duration-300"
-                >
-                  Report Stray
-                </NavLink>
+            {/* ================= CARE REMINDER NOTIFICATION ================= */}
+            <div className="lg:col-span-12 flex justify-center mt-10">
+              <div className="w-full max-w-3xl bg-white rounded-3xl p-8 shadow-xl border border-orange-100">
+                <h3 className="text-xl font-bold text-orange-500 mb-6">
+                  🩺 Care Reminders
+                </h3>
+
+                <HomeCareReminderPreview />
               </div>
             </div>
           </div>
@@ -157,7 +163,7 @@ export default function HomePage({ goTo }) {
               <Users size={20} />
               How It Works
             </h3>
-            <div className="space-y-4 flex-1 flex flex-col justify-between">
+            <div className="space-y-3 flex-1 flex flex-col justify-between">
               <InfoCard number="1" text="Create an account and complete your profile informations" />
               <InfoCard number="2" text="Browse pets or get Smart Pet recommendations" />
               <InfoCard number="3" text="Send adoption request or report a stray" />
@@ -176,7 +182,7 @@ export default function HomePage({ goTo }) {
             CONTACT US
           </h2>
 
-          <div className="space-y-6 text-left">
+          {/* <div className="space-y-6 text-left">
             <div className="flex items-center gap-4">
               <Mail size={24} />
               <span>admin@petfoundus.com</span>
@@ -195,6 +201,30 @@ export default function HomePage({ goTo }) {
                 Gelugor, Penang.
               </span>
             </div>
+          </div> */}
+          <div className="space-y-6 text-left">
+            {contactLoading && (
+              <p className="text-gray-400 text-sm">Loading contact info…</p>
+            )}
+
+            {contact && (
+              <>
+                <div className="flex items-center gap-4">
+                  <Mail size={24} />
+                  <span>{contact.email}</span>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <Phone size={24} />
+                  <span>{contact.phone}</span>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <MapPin size={24} />
+                  <span>{contact.address}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -240,7 +270,7 @@ function InfoCard({ text, number }) {
 function Stat({ number, label }) {
   return (
     <div className="group bg-gradient-to-br from-orange-50 to-white rounded-2xl p-6 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 text-center border-2 border-orange-200 hover:border-orange-400">
-      <p className="text-4xl font-extrabold text-orange-500 group-hover:scale-110 transition-transform inline-block">
+      <p className="text-2xl font-extrabold text-orange-500 group-hover:scale-110 transition-transform inline-block">
         {number}
       </p>
       <p className="mt-3 text-sm font-semibold text-gray-600 uppercase tracking-wide">

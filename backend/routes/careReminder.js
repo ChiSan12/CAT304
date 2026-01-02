@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const Pet = require('../models/pet');
 const CareReminder = require('../models/careReminder');
 
 // console.log('✅ careReminder routes loaded');
@@ -25,6 +26,36 @@ router.get('/pet/:petId', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch reminders'
+    });
+  }
+});
+
+// 🆕 ================================
+// 🆕 GET reminder preview (HOMEPAGE)
+// 🆕 ================================
+router.get('/preview/:adopterId', async (req, res) => {
+  try {
+    const reminders = await CareReminder.find({
+      adopterId: req.params.adopterId,      
+      isActive: true,
+      status: { $ne: 'Completed' }
+    })
+      .sort({ dueDate: 1 })
+      .limit(8)
+      .populate('petId', 'name')              
+      .select('title dueDate status petId')   
+      .lean();
+
+    res.json({
+      success: true,
+      reminders
+    });
+
+  } catch (err) {
+    console.error('Preview reminders error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to load reminder preview'
     });
   }
 });
@@ -59,7 +90,6 @@ router.post('/manual', async (req, res) => {
       description: notes,
       status: 'Pending',
       createdBy: 'Shelter'
-      // ❌ NO adopterId here (correct)
     });
 
     res.json({
