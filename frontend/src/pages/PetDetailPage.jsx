@@ -121,7 +121,7 @@ export default function PetDetailPage() {
 
   // Request or cancel
   const handleToggleRequest = async () => {
-    if (!user) {
+    if (!user|| !user.id) {
       const goLogin = window.confirm(
         "Please login to adopt. Would you like to go to the login page?"
       );

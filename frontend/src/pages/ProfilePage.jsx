@@ -12,6 +12,51 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
+function PreferencesReminder({ preferences }) {
+  const checks = [
+    { label: "Preferred Size", done: preferences?.preferredSize?.length > 0 },
+    { label: "Preferred Temperament", done: preferences?.preferredTemperament?.length > 0 },
+    { label: "Preferred Age", done: preferences?.preferredAge?.length > 0 },
+    { label: "Experience Level", done: !!preferences?.experienceLevel },
+  ];
+
+  const completed = checks.filter(c => c.done).length;
+  const percent = Math.round((completed / checks.length) * 100);
+
+  if (completed === checks.length) return null;
+
+  return (
+    <div className="bg-white border-2 border-red-400 rounded-xl p-5 shadow-md mb-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-bold text-red-800">
+          Required: Complete Preferences for Smart Matching
+        </h3>
+        <span className="text-sm font-semibold text-red-700">
+          {percent}% complete
+        </span>
+      </div>
+
+      {checks.map((c, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-3 text-sm text-gray-800"
+        >
+          <span
+            className={
+              c.done
+                ? "text-green-600 font-bold"
+                : "text-red-600 font-bold"
+            }
+          >
+            {c.done ? "✔" : "✘"}
+          </span>
+          <span className="font-medium">{c.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -32,9 +77,9 @@ export default function ProfilePage() {
     preferredAge: [],
     preferredTemperament: [],
     hasGarden: false,
-    hasOtherPets: false,
     hasChildren: false,
-    experienceLevel: "First-time",
+    hasOtherPets: false, 
+    experienceLevel: "",
   });
 
   useEffect(() => {
@@ -77,6 +122,7 @@ export default function ProfilePage() {
       setLoading(false);
     }
   }, [user]);
+
 
   const handleSaveProfile = async () => {
     if (!user || !user.id) return;
@@ -176,6 +222,7 @@ export default function ProfilePage() {
       {/* Header with Gradient */}
       <div className="bg-gradient-to-r from-[#FF8C42] to-[#FFA726] text-white">
         <div className="max-w-6xl mx-auto px-4 py-8">
+          <PreferencesReminder preferences={preferences} />
           <div className="flex items-center gap-4 mb-2">
             <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
               <User className="w-8 h-8" />

@@ -15,6 +15,8 @@ import ShelterLoginPage from "./pages/ShelterLoginPage";
 import ShelterPetsPage from "./pages/ShelterPetsPage";
 import ShelterRequestPage from "./pages/ShelterRequestPage";
 import ShelterStrayReportPage from "./pages/ShelterStrayReportPage";
+import CarePlanPage from "./pages/CarePlanPage";
+import MyReports from "./pages/MyReports";
 
 // Components
 import ChatBot from "./components/ChatBot";
@@ -119,6 +121,8 @@ function App() {
           />
           <Route path="/admin/settings" element={<ShelterSettingPage />} />
           <Route path="/admin/login" element={<ShelterLoginPage />} />
+          <Route path="/care-plan" element={<CarePlanPage/>} />
+          <Route path="/my-reports" element={<MyReports />} />
         </Routes>
       </main>
 

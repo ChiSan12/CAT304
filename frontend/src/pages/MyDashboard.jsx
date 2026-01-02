@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Heart,
   PawPrint,
@@ -7,15 +7,19 @@ import {
   XCircle,
   Calendar,
   TrendingUp,
+  AlertCircle,
+  Settings
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import CarePlanPage from './CarePlanPage';
 
 export default function MyDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview"); // overview, requests, adopted
+  const [viewCarePet, setViewCarePet] = useState(null);
 
   const [dashboardData, setDashboardData] = useState({
     stats: {
@@ -28,17 +32,9 @@ export default function MyDashboard() {
     requests: [],
     adoptedPets: [],
   });
+  const [adopter, setAdopter] = useState(null);
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/login");
-    }
-
-    if (user?.id) loadDashboard();
-  }, [user]);
-
-  const loadDashboard = async () => {
-    // 1. Safety check: Stop if user isn't loaded yet to fix the "undefined" error in your console
+  const loadDashboard = useCallback(async () => {
     if (!user || !user.id) return;
 
     try {
@@ -47,21 +43,20 @@ export default function MyDashboard() {
       const data = await res.json();
 
       if (data.success) {
+        setAdopter(data.adopter);
         const requests = data.adopter.adoptionRequests || [];
         const dbAdopted = data.adopter.adoptedPets || [];
 
-        // 2. THE FIX: Treat 'Approved' requests as Adopted pets
-        // This takes any request marked 'Approved' and adds it to the adopted list
+        // Treat 'Approved' requests as Adopted pets
         const approvedAsAdopted = requests
           .filter((r) => r.status === "Approved")
           .map((r) => ({
             petId: r.petId,
-            adoptionDate: r.requestDate, // Use request date since adoption date isn't set yet
+            adoptionDate: r.requestDate,
             _id: r._id,
           }));
 
-        // Combine the actual database adopted pets with the approved requests
-        // Using a Map to remove duplicates based on petId, just in case
+        // Combine adopted pets
         const uniqueAdoptedMap = new Map();
         [...dbAdopted, ...approvedAsAdopted].forEach((item) => {
           if (item.petId?._id) {
@@ -74,16 +69,13 @@ export default function MyDashboard() {
         setDashboardData({
           stats: {
             totalRequests: requests.length,
-            pendingRequests: requests.filter((r) => r.status === "Pending")
-              .length,
-            approvedRequests: requests.filter((r) => r.status === "Approved")
-              .length,
-            rejectedRequests: requests.filter((r) => r.status === "Rejected")
-              .length,
-            adoptedPets: allAdopted.length, // Update the count
+            pendingRequests: requests.filter((r) => r.status === "Pending").length,
+            approvedRequests: requests.filter((r) => r.status === "Approved").length,
+            rejectedRequests: requests.filter((r) => r.status === "Rejected").length,
+            adoptedPets: allAdopted.length,
           },
           requests: requests,
-          adoptedPets: allAdopted, // Update the list
+          adoptedPets: allAdopted,
         });
       }
     } catch (err) {
@@ -91,7 +83,25 @@ export default function MyDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+  if (!user) {
+    navigate("/login");
+    return;
+  }
+
+  loadDashboard();
+  }, [user, navigate, loadDashboard]);
+
+  if (viewCarePet) {
+    return (
+      <CarePlanPage
+        pet={viewCarePet}
+        onClose={() => setViewCarePet(null)}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -179,7 +189,8 @@ export default function MyDashboard() {
             )}
 
             {activeTab === "adopted" && (
-              <AdoptedPetsTab pets={dashboardData.adoptedPets} />
+              <AdoptedPetsTab pets={dashboardData.adoptedPets}
+              onViewCarePlan={setViewCarePet} />
             )}
           </div>
         </div>
@@ -385,7 +396,7 @@ function RequestsTab({ requests, onRefresh, adopterId }) {
   );
 }
 
-function AdoptedPetsTab({ pets }) {
+function AdoptedPetsTab({ pets, onViewCarePlan }) {
   if (pets.length === 0) {
     return (
       <div className="text-center py-12">
@@ -422,7 +433,9 @@ function AdoptedPetsTab({ pets }) {
                 Adopted: {new Date(item.adoptionDate).toLocaleDateString()}
               </span>
             </div>
-            <button className="w-full bg-[#FF8C42] hover:bg-[#e67e3b] text-white font-medium py-2 rounded-lg transition-colors">
+            <button
+              onClick={() => onViewCarePlan && onViewCarePlan(item)}
+              className="w-full bg-[#FF8C42] hover:bg-[#e67e3b] text-white font-medium py-2 rounded-lg transition-colors">
               View Care Plan
             </button>
           </div>

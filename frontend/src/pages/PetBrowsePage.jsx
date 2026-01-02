@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Search, Filter } from "lucide-react";
+import { Sparkles, Search, Filter, AlertCircle  } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import PetCard from "../components/PetCard";
 import { useNavigate } from "react-router-dom";
@@ -8,19 +8,27 @@ export default function PetBrowsePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // State Management
-  const [pets, setPets] = useState([]);
-  const [filteredPets, setFilteredPets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showAIMatch, setShowAIMatch] = useState(false);
+// State Management
+const [pets, setPets] = useState([]);
+const [filteredPets, setFilteredPets] = useState([]);
+const [loading, setLoading] = useState(true);
+const [showAIMatch, setShowAIMatch] = useState(false);
+const [matchingWarning, setMatchingWarning] = useState(null);
+const [myRequests, setMyRequests] = useState([]);
 
-  const [myRequests, setMyRequests] = useState([]);
+const [filters, setFilters] = useState({
+  species: 'All',
+  size: 'All',
+  temperament: 'All'
+});
 
-  const [filters, setFilters] = useState({
-    species: "All",
-    size: "All",
-    temperament: "All",
-  });
+const prefs = user?.preferences || {};
+
+const isProfileComplete =
+  prefs.preferredSize?.length > 0 &&
+  prefs.preferredTemperament?.length > 0 &&
+  prefs.preferredAge?.length > 0 &&
+  !!prefs.experienceLevel;
 
   // Initial Fetch
   useEffect(() => {
@@ -80,19 +88,29 @@ export default function PetBrowsePage() {
       );
     setFilteredPets(result);
     setShowAIMatch(false); // Turn off Smart Matching banner when manually filtering
+    setMatchingWarning(null); // Clear any warnings
   };
 
+  //  Improved Smart Matching with Preferences Check
   const getAIMatches = async () => {
     if (!user || !user.id) {
-      const shouldLogin = window.confirm(
-        "Please login to use Smart Pet Matching! Would you like to go to the login page?"
-      );
-      if (shouldLogin) {
-        navigate("/login");
-      }
-      return;
-    }
+    alert("Please login to use Smart Pet Matching");
+    navigate("/login");
+    return;
+  }
+
+  if (!isProfileComplete) {
+    alert(
+      "Please complete your adoption preferences before using Smart Pet Matching.\n\n" +
+      "This ensures accurate and responsible recommendations."
+    );
+    navigate("/profile");
+    return;
+  }
+
     setLoading(true);
+    setMatchingWarning(null); // Reset warning
+    
     try {
       const response = await fetch(
         "http://localhost:5000/api/adopters/pets/match",
@@ -103,14 +121,26 @@ export default function PetBrowsePage() {
         }
       );
       const data = await response.json();
-      if (data.success) {
-        setFilteredPets(data.pets);
+      
+      if (data.success) { 
+        setFilteredPets(data.pets); 
         setShowAIMatch(true);
+        
+        //  Show warning if backend sent one
+        if (data.warning) {
+          setMatchingWarning(data.warning);
+        }
+      } else if (data.needsPreferences) {
+        // Backend says preferences are needed
+        alert(data.message);
+      } else {
+        alert('Matching failed: ' + data.message);
       }
-    } catch (error) {
+    } catch (error) { 
       console.error(error);
-    } finally {
-      setLoading(false);
+      alert('Network error during matching');
+    } finally { 
+      setLoading(false); 
     }
   };
 
@@ -118,16 +148,15 @@ export default function PetBrowsePage() {
     setFilters({ species: "All", size: "All", temperament: "All" });
     setFilteredPets(pets);
     setShowAIMatch(false);
+    setMatchingWarning(null);
   };
 
   // Adoption Request
   const toggleAdoptionStatus = async (petId, isAlreadyRequested) => {
     if (!user || !user.id) {
-      const shouldLogin = window.confirm(
-        "Please login to adopt! Would you like to go to the login page?"
-      );
+      const shouldLogin = window.confirm("Please login to adopt! Would you like to go to the login page?");
       if (shouldLogin) {
-        navigate("/login");
+        navigate("/login")
       }
       return;
     }
@@ -196,10 +225,18 @@ export default function PetBrowsePage() {
           <div className="mb-6">
             <button
               onClick={getAIMatches}
-              className="w-full bg-gradient-to-r from-[#FF8C42] to-[#FFA726] hover:from-[#e67e3b] hover:to-[#f59e0b] text-white font-semibold py-4 rounded-lg flex items-center justify-center gap-3 shadow-lg"
+              disabled={!isProfileComplete}
+              className={`w-full py-4 rounded-lg font-semibold flex items-center justify-center gap-3 shadow-lg transition-all
+                ${
+                  isProfileComplete
+                    ? "bg-gradient-to-r from-[#FF8C42] to-[#FFA726] text-white"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
             >
-              <Sparkles className="w-6 h-6" /> Get Smart Pet Matching
-              Recommendations
+              <Sparkles className="w-6 h-6" />
+              {isProfileComplete
+                ? "Use Smart Pet Matching"
+                : "Complete Preferences to Use Smart Matching"}
             </button>
           </div>
 
@@ -265,9 +302,17 @@ export default function PetBrowsePage() {
         {showAIMatch && (
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 flex items-center gap-3 animate-fade-in">
             <Sparkles className="w-5 h-5 text-[#FF8C42]" />
-            <p className="text-orange-900 font-medium">
-              Showing smart-matched pets
-            </p>
+            <p className="text-orange-900 font-medium">Showing smart-matched pets based on your preferences</p>
+          </div>
+        )}
+
+        {/*  Warning Banner for incomplete preferences */}
+        {matchingWarning && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-yellow-600" />
+            <div className="flex-grow">
+              <p className="text-yellow-900 font-medium">{matchingWarning}</p>
+            </div>
           </div>
         )}
 
@@ -285,6 +330,7 @@ export default function PetBrowsePage() {
                 showScore={showAIMatch}
                 isRequested={myRequests.includes(pet._id)}
                 onToggleRequest={toggleAdoptionStatus}
+                // onViewDetails={() => navigate(`/pets/${pet._id}`)}
               />
             ))}
           </div>

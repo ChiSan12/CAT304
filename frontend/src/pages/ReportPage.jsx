@@ -45,6 +45,63 @@ function RecenterMap({ coords }) {
   return null;
 }
 
+// ===================== Submission Modal =====================
+function SubmissionModal({ onClose, redirectTo }) {
+  const navigate = useNavigate();
+  const [countdown, setCountdown] = useState(5);
+  const [bounce, setBounce] = useState(false);
+
+  useEffect(() => {
+  const timer = setInterval(() => {
+    setBounce(true); // trigger bounce animation
+    setCountdown((prev) => {
+      if (prev <= 1) {
+        clearInterval(timer);
+        navigate(redirectTo);
+        window.scrollTo({ top: 0, behavior: "smooth" }); // <-- scroll to top
+        return 0;
+      }
+      return prev - 1;
+    });
+    setTimeout(() => setBounce(false), 300); // reset bounce
+  }, 1000);
+
+  return () => clearInterval(timer);
+}, [navigate, redirectTo]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 text-center relative">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 font-bold"
+        >
+          ✖
+        </button>
+        <div className="text-5xl mb-4 animate-bounce">🐾</div>
+        <h2 className="text-2xl font-bold text-orange-500 mb-2">
+          Report Submitted!
+        </h2>
+        <p className="text-gray-700 mb-4">
+          Thank you for helping animals in need. 🐾
+        </p>
+        <p className="text-gray-600 text-xl">
+          Redirecting to My Reports in{" "}
+          <span
+            className={`font-bold inline-block transition-transform ${
+              bounce ? "scale-125" : "scale-100"
+            }`}
+          >
+            {countdown}
+          </span>{" "}
+          seconds...
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ===================== Main Component =====================
 export default function ReportPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -55,15 +112,15 @@ export default function ReportPage() {
   const [animalType, setAnimalType] = useState("");
   const [number, setNumber] = useState("");
   const [condition, setCondition] = useState("");
+  const [otherCondition, setOtherCondition] = useState("");
   const [animalDesc, setAnimalDesc] = useState("");
   const [placeDesc, setPlaceDesc] = useState("");
   const [photo, setPhoto] = useState(null);
-  const [reporterEmail, setReporterEmail] = useState(""); // <-- Reporter email
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
 
-  // Track Me button function
+  // Track Me button
   const trackUser = () => {
     if (!navigator.geolocation) return alert("Geolocation not supported");
     navigator.geolocation.getCurrentPosition(
@@ -79,26 +136,24 @@ export default function ReportPage() {
   // Submit handler
   const handleSubmit = async () => {
     if (!pin) return alert("Place a pin on the map first!");
-    if (
-      !animalDesc ||
-      !placeDesc ||
-      !animalType ||
-      !number ||
-      !condition ||
-      !reporterEmail
-    )
+    if (!animalDesc || !placeDesc || !animalType || !condition)
       return alert("Please fill in all the required fields!");
+    if (!photo) return alert("Please upload a photo of the animal! 🐾");
+    if (condition === "Other" && !otherCondition)
+      return alert("Please describe the animal's condition!");
+
+    const finalCondition = condition === "Other" ? otherCondition : condition;
 
     const formData = new FormData();
     formData.append("animalType", animalType);
     formData.append("number", number);
-    formData.append("condition", condition);
+    formData.append("condition", finalCondition);
     formData.append("animalDesc", animalDesc);
     formData.append("placeDesc", placeDesc);
     formData.append("pinLat", pin.lat);
     formData.append("pinLng", pin.lng);
-    formData.append("email", reporterEmail); // <-- send email for reportedBy
-    if (photo) formData.append("photoUrl", photo);
+    formData.append("email", user?.email); // Automatically use logged-in user's email
+    formData.append("photoUrl", photo);
 
     try {
       await axios.post("http://localhost:5000/api/reports", formData, {
@@ -109,13 +164,12 @@ export default function ReportPage() {
       setAnimalType("");
       setNumber("");
       setCondition("");
+      setOtherCondition("");
       setAnimalDesc("");
       setPlaceDesc("");
       setPhoto(null);
       setPin(null);
-      setReporterEmail("");
 
-      // Show modal
       setShowModal(true);
     } catch (err) {
       console.error(err);
@@ -130,7 +184,7 @@ export default function ReportPage() {
   }, [user, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pt-24">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-orange-500 to-orange-400 text-white py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
@@ -256,8 +310,18 @@ export default function ReportPage() {
                   <option>Healthy</option>
                   <option>Injured</option>
                   <option>Sick</option>
-                  <option>Unknown</option>
+                  <option>Other</option>
                 </select>
+
+                {condition === "Other" && (
+                  <input
+                    type="text"
+                    placeholder="Please describe the condition"
+                    className="mt-2 w-full border-2 border-gray-200 p-3 rounded-xl focus:border-orange-400 focus:outline-none transition"
+                    value={otherCondition}
+                    onChange={(e) => setOtherCondition(e.target.value)}
+                  />
+                )}
               </div>
             </div>
 
@@ -295,68 +359,56 @@ export default function ReportPage() {
             <textarea
               className="w-full border-2 border-gray-200 p-4 rounded-xl focus:border-orange-400 focus:outline-none transition"
               rows={4}
-              placeholder="E.g., 'Behind the coffee shop on Main Street' or 'Near the playground in Central Park'..."
+              placeholder="E.g., 'Behind the coffee shop on Main Street'..."
               value={placeDesc}
               onChange={(e) => setPlaceDesc(e.target.value)}
             />
           </div>
         </div>
 
-        {/* Step 4: Reporter Info */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="bg-orange-500 text-white px-6 py-4 flex items-center gap-3">
-            <AlertCircle size={28} />
-            <div>
-              <h2 className="text-2xl font-bold">Step 4: Your Information</h2>
-              <p className="text-orange-50 text-sm">
-                Enter your email so we can record who submitted this report
-              </p>
-            </div>
-          </div>
-
-          <div className="p-6">
-            <label className="block font-semibold text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              className="w-full border-2 border-gray-200 p-3 rounded-xl focus:border-orange-400 focus:outline-none transition"
-              placeholder="your.email@example.com"
-              value={reporterEmail}
-              onChange={(e) => setReporterEmail(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* Step 5: Photo Upload */}
+        {/* Step 4: Photo Upload */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="bg-orange-500 text-white px-6 py-4 flex items-center gap-3">
             <Camera size={28} />
             <div>
               <h2 className="text-2xl font-bold">
-                Step 5: Upload Photo (Optional)
+                Step 4: Upload a Photo 🐾
               </h2>
               <p className="text-orange-50 text-sm">
-                A picture helps us identify the animal
+                A cute photo will help us find and rescue the animal faster! 📸
               </p>
             </div>
           </div>
 
-          <div className="p-6">
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-orange-400 transition">
+          <div className="p-6 space-y-3">
+            <div
+              className={`border-2 border-dashed rounded-xl p-8 text-center hover:border-orange-400 transition ${
+                !photo ? "border-red-300" : "border-green-300"
+              }`}
+            >
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => setPhoto(e.target.files[0])}
-                className="w-full"
+                className="w-full cursor-pointer"
                 id="photo-upload"
               />
+              {!photo && (
+                <p className="mt-3 text-red-400 font-semibold">
+                  Please upload a photo 🐶🐱
+                </p>
+              )}
               {photo && (
                 <p className="mt-3 text-green-600 font-semibold">
-                  ✅ Photo selected: {photo.name}
+                  ✅ Yay! Photo selected: {photo.name} 🎉
                 </p>
               )}
             </div>
+
+            {/* Note about reporter */}
+            <p className="text-gray-700 text-sm italic text-center">
+              This report will be recorded under <strong>{user?.email}</strong>
+            </p>
           </div>
         </div>
 
@@ -368,28 +420,24 @@ export default function ReportPage() {
           >
             🚀 Submit Report
           </button>
+
+          <div className="text-center pt-4 pb-12">
+            <button
+              onClick={() => navigate("/my-reports")}
+              className="px-12 py-4 bg-gradient-to-r from-orange-400 to-orange-500 text-white text-lg rounded-xl font-bold hover:from-orange-500 hover:to-orange-600 transition shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              📋 Check My Report Status
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 text-center relative">
-            <h2 className="text-2xl font-bold text-orange-500 mb-4">
-              🎉 Report Submitted!
-            </h2>
-            <p className="text-gray-700 mb-4">
-              Thank you for helping animals in need. 🐾 <br />
-              You can view the status of your report in your dashboard.
-            </p>
-            <button
-              onClick={() => setShowModal(false)}
-              className="px-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <SubmissionModal
+          onClose={() => setShowModal(false)}
+          redirectTo="/my-reports"
+        />
       )}
     </div>
   );

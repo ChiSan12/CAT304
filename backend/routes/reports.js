@@ -14,8 +14,14 @@ router.post('/', upload.single('photoUrl'), async (req, res) => {
   try {
     const { animalType, number, condition, animalDesc, placeDesc, pinLat, pinLng, email } = req.body;
 
+    // Check all required fields
     if (!animalType || !number || !condition || !animalDesc || !placeDesc || !pinLat || !pinLng || !email) {
       return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // **Check photo is uploaded**
+    if (!req.file) {
+      return res.status(400).json({ message: "Photo is required" });
     }
 
     const adopter = await Adopter.findOne({ email });
@@ -28,7 +34,7 @@ router.post('/', upload.single('photoUrl'), async (req, res) => {
       animalDesc,
       placeDesc,
       pin: { lat: Number(pinLat), lng: Number(pinLng) },
-      photoUrl: req.file ? req.file.buffer : undefined,
+      photoUrl: req.file.buffer, // mandatory now
       reportedBy: adopter._id,
       status: 'Pending'
     });
@@ -41,28 +47,44 @@ router.post('/', upload.single('photoUrl'), async (req, res) => {
   }
 });
 
-// --- 2. GET ALL REPORTS (Admin) ---
+
+// --- GET REPORTS (Admin or User) ---
+// GET REPORTS (Admin or User)
 router.get('/', async (req, res) => {
   try {
-    const reports = await Report.find()
-      .populate('reportedBy', 'fullName email phone')
-      .sort({ createdAt: -1 });
+    const { userId, email } = req.query;
+    let filter = {};
 
-    // Convert Buffer to Base64 for frontend display
+    if (userId) {
+      filter.reportedBy = userId; // old way
+    } else if (email) {
+      // Find adopter by email
+      const adopter = await Adopter.findOne({ email });
+      if (adopter) filter.reportedBy = adopter._id;
+      else return res.json({ reports: [] }); // no adopter found
+    }
+
+    const reports = await Report.find(filter)
+      .sort({ createdAt: -1 })
+      .populate('reportedBy', 'fullName email');
+
     const formattedReports = reports.map(r => {
       const doc = r.toObject();
       if (r.photoUrl) {
         doc.image = `data:image/jpeg;base64,${r.photoUrl.toString('base64')}`;
-        delete doc.photoUrl; // reduce payload size
+        delete doc.photoUrl;
       }
       return doc;
     });
 
-    res.json({ success: true, reports: formattedReports });
+    res.json({ reports: formattedReports });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 });
+
+
 
 // --- 3. UPDATE STATUS (Admin) ---
 router.patch('/:id', async (req, res) => {
