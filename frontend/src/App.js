@@ -14,13 +14,15 @@ import ShelterDashboard from "./pages/ShelterDashboard";
 import ShelterLoginPage from "./pages/ShelterLoginPage";
 import ShelterPetsPage from "./pages/ShelterPetsPage";
 import ShelterRequestPage from "./pages/ShelterRequestPage";
+import ShelterPostAdoptionPage from "./pages/ShelterPostAdoptionPage";
+import ShelterPostAdoptionDetail from "./pages/ShelterPostAdoptionDetail";
 import ShelterStrayReportPage from "./pages/ShelterStrayReportPage";
 import CarePlanPage from "./pages/CarePlanPage";
 import MyReports from "./pages/MyReports";
 
 // Components
 import ChatBot from "./components/ChatBot";
-
+import ScrollToTop from "./components/ScrollToTop";
 import "./styles/HomePage.css";
 import "./styles/PetStyles.css";
 import ShelterSettingPage from "./pages/ShelterSettingPage";
@@ -103,6 +105,7 @@ function App() {
 
       {/* ================= PAGE CONTENT ================= */}
       <main className="flex-grow flex flex-col">
+        <ScrollToTop /> 
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/pets" element={<PetBrowsePage />} />
@@ -115,6 +118,8 @@ function App() {
           <Route path="/admin/overview" element={<ShelterDashboard />} />
           <Route path="/admin/manage-pets" element={<ShelterPetsPage />} />
           <Route path="/admin/requests" element={<ShelterRequestPage />} />
+          <Route path="/admin/post-adoption" element={<ShelterPostAdoptionPage />} />
+          <Route path="/admin/post-adoption/:petId" element={<ShelterPostAdoptionDetail />} />
           <Route
             path="/admin/stray-reports"
             element={<ShelterStrayReportPage />}

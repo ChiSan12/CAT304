@@ -27,6 +27,12 @@ app.use('/api/shelters', shelterRoutes);
 const reportRouter = require('./routes/reports');
 app.use('/api/reports', reportRouter); // only mount once
 
+const careReminderRoutes = require('./routes/careReminder');
+app.use('/api/reminders', careReminderRoutes);
+
+const petUpdateRoutes = require('./routes/petUpdates');
+app.use('/api/pet-updates', petUpdateRoutes);
+
 const vetClinicRoutes = require('./routes/vetClinics');
 app.use('/api/vet-clinics', vetClinicRoutes);
 
@@ -170,9 +176,18 @@ app.get('/api/chat/history', async (req, res) => {
 });
 
 // DB & server
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected Successfully!"))
+// mongoose.connect(process.env.MONGO_URI)
+//   .then(() => console.log("MongoDB Connected Successfully!"))
+//   .catch((err) => console.log("MongoDB Connection Error:", err));
+mongoose.connect(process.env.MONGO_URI, {
+  dbName: 'test'
+})
+  .then(() => {
+    console.log("MongoDB Connected Successfully!");
+    console.log("Connected DB:", mongoose.connection.name);
+  })
   .catch((err) => console.log("MongoDB Connection Error:", err));
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

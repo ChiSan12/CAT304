@@ -2,89 +2,198 @@ const express = require('express');
 const router = express.Router();
 const CareReminder = require('../models/careReminder');
 
+// console.log('✅ careReminder routes loaded');
+
 /**
- * GET reminders for a pet (adopter view)
+ * ================================
+ * GET reminders for a pet (Adopter)
+ * ================================
  */
 router.get('/pet/:petId', async (req, res) => {
   try {
     const reminders = await CareReminder.find({
       petId: req.params.petId,
-      status: { $ne: 'disabled' },
+      isActive: true
     }).sort({ dueDate: 1 });
 
-    res.json(reminders);
+    res.json({
+      success: true,
+      reminders
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch reminders' });
+    console.error('Fetch reminders error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch reminders'
+    });
+  }
+});
+
+router.post('/manual', async (req, res) => {
+  try {
+    console.log('📥 MANUAL REMINDER BODY:', req.body);
+
+    const {
+      petId,
+      shelterId,
+      title,
+      dueDate,
+      category,
+      notes
+    } = req.body;
+
+    // ✅ minimal validation
+    if (!petId || !shelterId || !title || !dueDate || !category) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields'
+      });
+    }
+
+    const reminder = await CareReminder.create({
+      petId,
+      shelterId,
+      title,
+      dueDate,
+      category,
+      description: notes,
+      status: 'Pending',
+      createdBy: 'Shelter'
+      // ❌ NO adopterId here (correct)
+    });
+
+    res.json({
+      success: true,
+      reminder
+    });
+
+  } catch (err) {
+    console.error('❌ MANUAL REMINDER ERROR:', err);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
   }
 });
 
 /**
- * PUT mark reminder as completed (adopter)
+ * ==================================
+ * MARK reminder as completed (Adopter)
+ * ==================================
  */
 router.put('/:id/complete', async (req, res) => {
   try {
     const reminder = await CareReminder.findByIdAndUpdate(
       req.params.id,
       {
-        status: 'completed',
-        completedAt: new Date(),
+        status: 'Completed',     // ✅ ENUM SAFE
+        completedAt: new Date()
       },
       { new: true }
     );
 
-    res.json(reminder);
+    if (!reminder) {
+      return res.status(404).json({
+        success: false,
+        message: 'Reminder not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      reminder
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to update reminder' });
+    console.error('Complete reminder error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update reminder'
+    });
   }
 });
 
 /**
- * PUT edit / disable reminder (shelter override)
+ * ==================================
+ * EDIT reminder (Shelter override)
+ * ==================================
  */
 router.put('/:id', async (req, res) => {
   try {
-    const { dueDate, notes, status } = req.body;
+    const {
+      title,
+      description,
+      dueDate,
+      status,
+      isActive
+    } = req.body;
 
     const reminder = await CareReminder.findByIdAndUpdate(
       req.params.id,
-      { dueDate, notes, status },
+      {
+        ...(title && { title }),
+        ...(description && { description }),
+        ...(dueDate && { dueDate }),
+        ...(status && { status }),
+        ...(typeof isActive === 'boolean' && { isActive }),
+
+        // 🔥 IMPORTANT
+        updatedBy: 'Shelter'
+      },
       { new: true }
     );
 
-    res.json(reminder);
+    if (!reminder) {
+      return res.status(404).json({
+        success: false,
+        message: 'Reminder not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      reminder
+    });
+
   } catch (err) {
-    res.status(500).json({ message: 'Failed to update reminder' });
+    console.error('Update reminder error:', err);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
   }
 });
+/**
+ * ==================================
+ * SHELTER: delete (deactivate) reminder
+ * ==================================
+ */
+router.delete('/:id', async (req, res) => {
+  try {
+    const reminder = await CareReminder.findByIdAndUpdate(
+      req.params.id,
+      { isActive: false },
+      { new: true }
+    );
 
-const generateVaccinationReminder = async (pet) => {
-  const health = pet.healthStatus || {};
+    if (!reminder) {
+      return res.status(404).json({
+        success: false,
+        message: 'Reminder not found'
+      });
+    }
 
-  let dueDate;
-  let title;
+    res.json({
+      success: true,
+      message: 'Reminder deleted successfully'
+    });
 
-  if (health.nextVaccinationDue) {
-    dueDate = new Date(health.nextVaccinationDue);
-    title = 'Vaccination Reminder';
-  } else if (health.vaccinated === false) {
-    dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 7);
-    title = 'Initial Vaccination Required';
-  } else {
-    dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 14);
-    title = 'Vaccination Check';
+  } catch (err) {
+    console.error('Delete reminder error:', err);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
   }
-
-  return CareReminder.create({
-    petId: pet._id,
-    type: 'vaccination',
-    title,
-    dueDate,
-    status: 'pending',
-    createdBy: 'system',
-    notes: 'Automatically generated after adoption',
-  });
-};
+});
 
 module.exports = router;

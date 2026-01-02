@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import CareReminderList from '../components/CareReminderList';
 import VetClinicMap from '../components/VetClinicMap';
+import { useAuth } from '../context/AuthContext';
 
 import {
   TrainingTips,
@@ -10,6 +12,7 @@ import {
 /* ================= POST-ADOPTION MODULE ================= */
 
 export default function CarePlanPage({ pet, onClose }) {
+  const { user } = useAuth();
   const [isLarge, setIsLarge] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
   const contentRef = React.useRef(null);
@@ -103,15 +106,37 @@ export default function CarePlanPage({ pet, onClose }) {
 
           {/* 🩺 CARE & HEALTH */}
           {activeSection === 'care' && (
-            <div className="max-w-4xl mx-auto animate-fade-in">
-              <CareScheduleCard pet={pet} expanded />
+            <div className="max-w-4xl mx-auto animate-fade-in space-y-6">
+              
+              {/* Header */}
+              <div className="bg-white rounded-2xl border p-6 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-xl">
+                    🩺
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-gray-800">
+                      Care & Health Reminders
+                    </h4>
+                    <p className="text-sm text-gray-500">
+                      Track upcoming vaccinations, treatments, and follow-ups
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 🔔 Dynamic Reminder List */}
+              <CareReminderList
+                petId={pet.petId._id}
+                role="adopter"
+              />
             </div>
           )}
 
           {/* 📸 PET UPDATE */}
           {activeSection === 'update' && (
             <div className="max-w-4xl mx-auto animate-fade-in">
-              <PetUpdateCard pet={pet} />
+              <PetUpdateCard pet={pet} user={user} />
             </div>
           )}
 
@@ -323,100 +348,100 @@ export default function CarePlanPage({ pet, onClose }) {
   );
 }
 
-function CareScheduleCard({ pet }) {
-  const health = pet.petId.healthStatus || {};
-  const nextDate = health.nextVaccinationDue
-    ? new Date(health.nextVaccinationDue)
-    : null;
+// function CareScheduleCard({ pet }) {
+//   const health = pet.petId.healthStatus || {};
+//   const nextDate = health.nextVaccinationDue
+//     ? new Date(health.nextVaccinationDue)
+//     : null;
 
-  const daysLeft = nextDate
-    ? Math.ceil((nextDate - new Date()) / (1000 * 60 * 60 * 24))
-    : null;
+//   const daysLeft = nextDate
+//     ? Math.ceil((nextDate - new Date()) / (1000 * 60 * 60 * 24))
+//     : null;
 
-  const statusStyle =
-    daysLeft === null
-      ? 'bg-gray-100 text-gray-600'
-      : daysLeft <= 3
-      ? 'bg-red-100 text-red-700'
-      : daysLeft <= 7
-      ? 'bg-yellow-100 text-yellow-700'
-      : 'bg-green-100 text-green-700';
+//   const statusStyle =
+//     daysLeft === null
+//       ? 'bg-gray-100 text-gray-600'
+//       : daysLeft <= 3
+//       ? 'bg-red-100 text-red-700'
+//       : daysLeft <= 7
+//       ? 'bg-yellow-100 text-yellow-700'
+//       : 'bg-green-100 text-green-700';
 
-  const statusText =
-    daysLeft === null
-      ? 'No schedule'
-      : daysLeft <= 0
-      ? 'Overdue'
-      : `Due in ${daysLeft} days`;
+//   const statusText =
+//     daysLeft === null
+//       ? 'No schedule'
+//       : daysLeft <= 0
+//       ? 'Overdue'
+//       : `Due in ${daysLeft} days`;
 
-  return (
-    <div className="bg-white rounded-2xl border p-6 shadow-sm">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-xl">
-          🩺
-        </div>
-        <div>
-          <h4 className="text-xl font-bold text-gray-800">
-            Care & Health Reminders
-          </h4>
-          <p className="text-sm text-gray-500">
-            Keep track of important medical schedules
-          </p>
-        </div>
-      </div>
+//   return (
+//     <div className="bg-white rounded-2xl border p-6 shadow-sm">
+//       {/* Header */}
+//       <div className="flex items-center gap-3 mb-6">
+//         <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-xl">
+//           🩺
+//         </div>
+//         <div>
+//           <h4 className="text-xl font-bold text-gray-800">
+//             Care & Health Reminders
+//           </h4>
+//           <p className="text-sm text-gray-500">
+//             Keep track of important medical schedules
+//           </p>
+//         </div>
+//       </div>
 
-      {/* Vaccination Card */}
-      <div className="border rounded-xl p-5 bg-gradient-to-br from-yellow-50 to-amber-100 border-amber-200">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h5 className="font-semibold text-lg text-gray-800">
-              Vaccination
-            </h5>
-            <p className="text-sm text-gray-600">
-              Core vaccine schedule
-            </p>
-          </div>
+//       {/* Vaccination Card */}
+//       <div className="border rounded-xl p-5 bg-gradient-to-br from-yellow-50 to-amber-100 border-amber-200">
+//         <div className="flex justify-between items-start mb-4">
+//           <div>
+//             <h5 className="font-semibold text-lg text-gray-800">
+//               Vaccination
+//             </h5>
+//             <p className="text-sm text-gray-600">
+//               Core vaccine schedule
+//             </p>
+//           </div>
 
-          {/* Status badge */}
-          <span
-            className={`px-4 py-1 rounded-full text-sm font-medium ${statusStyle}`}
-          >
-            {health.vaccinated ? 'Completed' : statusText}
-          </span>
-        </div>
+//           {/* Status badge */}
+//           <span
+//             className={`px-4 py-1 rounded-full text-sm font-medium ${statusStyle}`}
+//           >
+//             {health.vaccinated ? 'Completed' : statusText}
+//           </span>
+//         </div>
 
-        {/* Timeline */}
-        <div className="space-y-3 mt-4">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
-            <p className="text-sm text-gray-700">
-              Previous vaccination completed
-            </p>
-          </div>
+//         {/* Timeline */}
+//         <div className="space-y-3 mt-4">
+//           <div className="flex items-center gap-3">
+//             <div className="w-2 h-2 rounded-full bg-green-500" />
+//             <p className="text-sm text-gray-700">
+//               Previous vaccination completed
+//             </p>
+//           </div>
 
-          {nextDate && (
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-2 h-2 rounded-full ${
-                  daysLeft <= 7 ? 'bg-yellow-500' : 'bg-blue-500'
-                }`}
-              />
-              <p className="text-sm text-gray-700">
-                Next vaccination scheduled on{' '}
-                <span className="font-medium">
-                  {nextDate.toLocaleDateString()}
-                </span>
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+//           {nextDate && (
+//             <div className="flex items-center gap-3">
+//               <div
+//                 className={`w-2 h-2 rounded-full ${
+//                   daysLeft <= 7 ? 'bg-yellow-500' : 'bg-blue-500'
+//                 }`}
+//               />
+//               <p className="text-sm text-gray-700">
+//                 Next vaccination scheduled on{' '}
+//                 <span className="font-medium">
+//                   {nextDate.toLocaleDateString()}
+//                 </span>
+//               </p>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
-function PetUpdateCard({ pet }) {
+function PetUpdateCard({ pet, user }) {
   const [notes, setNotes] = useState('');
   const [weight, setWeight] = useState('');
   const [condition, setCondition] = useState('');
@@ -433,26 +458,47 @@ function PetUpdateCard({ pet }) {
     setPreviewImages(previews);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!notes.trim()) return;
 
-    // 🔹 DEMO ONLY – later you can POST to backend
     console.log({
-      petId: pet.petId._id,
-      notes,
-      weight,
-      condition,
-      images,
+      petId: pet.petId?._id,
+      adopterId: user.id,
+      shelterId: pet.petId?.shelterId
+    });
+
+    const formData = new FormData();
+    formData.append('petId', pet.petId._id);
+    formData.append('adopterId', user.id);
+    formData.append('shelterId', pet.petId.shelterId);
+
+    formData.append('notes', notes);
+    formData.append('weight', weight);
+    formData.append('condition', condition);
+
+    images.forEach((img) => {
+      formData.append('images', img);
+    });
+
+    try {
+      await fetch('http://localhost:5000/api/pet-updates', {
+        method: 'POST',
+        body: formData,
     });
 
     setSubmitted(true);
+    // setTimeout(() => setSubmitted(false), 3000);
+
     setNotes('');
     setWeight('');
     setCondition('');
     setImages([]);
-    setPreviewImages([]);
-
+    setPreviewImages([]); 
+    
     setTimeout(() => setSubmitted(false), 3000);
+    } catch (err) {
+      console.error('Submit pet update failed:', err);
+    }
   };
 
   return (

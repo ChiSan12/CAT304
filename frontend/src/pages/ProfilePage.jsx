@@ -58,7 +58,7 @@ function PreferencesReminder({ preferences }) {
 }
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -168,6 +168,12 @@ export default function ProfilePage() {
       const data = await response.json();
 
       if (data.success) {
+        updateUser({
+          fullName: profile.fullName,
+          phone: finalPhone,
+          preferences: preferences
+        });
+
         setMessage({
           type: "success",
           text: "Profile updated successfully! ",

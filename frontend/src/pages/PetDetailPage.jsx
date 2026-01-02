@@ -11,18 +11,20 @@ import {
   Search,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { NavLink, useNavigate, useParams, useLocation  } from "react-router-dom";
 
 export default function PetDetailPage() {
   const { user } = useAuth();
   const { petId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const navState = location.state || {};
   const [pet, setPet] = useState(null);
 
   // Smart Pet Matching detection
-  const matchScore = pet?.compatibilityScore;
+  const matchScore = navState.compatibilityScore ?? pet?.compatibilityScore;
   const isAIMatch =
-    pet?._fromAI || (matchScore !== undefined && matchScore > 0);
+    navState.fromAIMatch || pet?._fromAI || (matchScore !== undefined && matchScore > 0);
 
   const [isRequested, setIsRequested] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -83,7 +85,11 @@ export default function PetDetailPage() {
         );
         const data = await response.json();
         if (data.success) {
-          setPet(data.pet);
+          setPet({
+          ...data.pet,
+          compatibilityScore: navState.compatibilityScore ?? data.pet.compatibilityScore,
+          _fromAI: navState.fromAIMatch ?? data.pet._fromAI
+          });
         }
       } catch (error) {
         console.error("Error fetching pet:", error);
@@ -93,7 +99,7 @@ export default function PetDetailPage() {
     };
 
     fetchPet();
-  }, [petId]);
+  }, [petId, navState.compatibilityScore, navState.fromAIMatch]);
 
   // Check request status
   useEffect(() => {

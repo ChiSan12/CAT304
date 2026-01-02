@@ -109,7 +109,18 @@ export default function PetCard({
         </div>
 
         <div className="space-y-2">
-          <NavLink to={`/pets/${pet._id}`} className="btn-secondary">
+          <NavLink 
+            to={`/pets/${pet._id}`}
+            state={{ 
+              compatibilityScore: pet.compatibilityScore,
+              fromAIMatch: showScore && pet.compatibilityScore > 0
+            }}
+
+            onClick={() => {
+              sessionStorage.setItem('browseScrollPosition', window.scrollY.toString());
+            }}
+            className="btn-secondary"
+          >
             View Details <ArrowRight className="w-4 h-4" />
           </NavLink>
 
