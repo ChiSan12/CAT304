@@ -81,8 +81,8 @@ export default function ShelterPetsPage() {
                       pet.adoptionStatus === "Available"
                         ? "bg-green-500"
                         : pet.adoptionStatus === "Adopted"
-                        ? "bg-gray-500"
-                        : "bg-yellow-500"
+                          ? "bg-gray-500"
+                          : "bg-yellow-500"
                     }`}
                   >
                     {pet.adoptionStatus}

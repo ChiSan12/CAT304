@@ -1,22 +1,146 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import ShelterLayout from "../components/ShelterLayout";
+import ReactApexChart from "react-apexcharts";
+import {
+  startOfDay,
+  subDays,
+  eachDayOfInterval,
+  startOfToday,
+  format,
+} from "date-fns";
 
 export default function ShelterDashboard() {
   const { user } = useAuth();
   const SHELTER_ID = user?.id;
+  const [pets, setPets] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [dayCount, setDayCount] = useState(6);
 
-  // Data States
-  const [stats, setStats] = useState({
-    totalPets: 0,
-    availablePets: 0,
-    adoptedPets: 0,
-    pendingRequests: 0,
-  });
+  const availablePets = pets.filter(
+    (pet) => pet.adoptionStatus === "Available"
+  );
+
+  const adoptedPets = pets.filter((pet) => pet.adoptionStatus === "Adopted");
+
+  const pendingRequestCount = requests.filter(
+    (pet) => pet.status === "Pending"
+  ).length;
+
+  const availablePetsCount = availablePets.length;
+  const adoptedPetsCount = adoptedPets.length;
+
+  const getDaysOfInterval = (totalDays) => {
+    const end = startOfToday();
+
+    const start = subDays(end, totalDays);
+
+    return eachDayOfInterval({ start, end });
+  };
+
+  const intervalDays = getDaysOfInterval(dayCount);
+
+  const intervalAvailablePets = intervalDays.map(
+    (day) =>
+      availablePets.filter(
+        (pet) => startOfDay(pet.createdAt).getTime() === day.getTime()
+      ).length
+  );
+
+  const intervalAdoptedPets = intervalDays.map(
+    (day) =>
+      adoptedPets.filter(
+        (pet) => startOfDay(pet.createdAt).getTime() === day.getTime()
+      ).length
+  );
+
+  const getTotalPets = () => {
+    let total = pets.length;
+
+    const result = Array.from({ length: dayCount + 1 }).map((_, index) => {
+      if (!index) {
+        return total;
+      }
+
+      const reverseIndex = dayCount + 1 - index;
+
+      total =
+        total -
+        intervalAvailablePets[reverseIndex] -
+        intervalAdoptedPets[reverseIndex];
+
+      return total;
+    });
+
+    return result.toReversed();
+  };
+
+  const data = {
+    series: [
+      {
+        name: "Available Pets",
+        type: "column",
+        data: intervalAvailablePets,
+      },
+      {
+        name: "Adopted Pets",
+        type: "column",
+        data: intervalAdoptedPets,
+      },
+      {
+        name: "Total Pets",
+        type: "line",
+        data: getTotalPets(),
+      },
+    ],
+    options: {
+      chart: {
+        height: 350,
+        type: "line",
+        stacked: false,
+      },
+      dataLabels: {
+        enabled: false,
+      },
+      title: {
+        text: "Pet Adoption Analysis",
+        align: "left",
+      },
+      xaxis: {
+        categories: intervalDays.map((day) => format(day, "dd MMM yyyy")),
+      },
+    },
+  };
 
   // --- REFRESH FUNCTION ---
   const refreshData = () => {
-    fetchStats();
+    fetchPets();
+    fetchRequests();
+  };
+
+  // --- API FUNCTIONS ---
+  const fetchPets = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/shelters/${SHELTER_ID}/pets`
+      );
+      const data = await res.json();
+      if (data.success) setPets(data.pets);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchRequests = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/shelters/${SHELTER_ID}/requests`
+      );
+      const data = await res.json();
+      if (data.success) setRequests(data.requests);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
@@ -24,34 +148,29 @@ export default function ShelterDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [SHELTER_ID]);
 
-  // --- API FUNCTIONS ---
-  const fetchStats = async () => {
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/shelters/${SHELTER_ID}/stats`
-      );
-      const data = await res.json();
-      if (data.success) setStats(data.stats);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   return (
     <ShelterLayout>
       <div className="flex-1 p-8 ml-64">
-        <div className="animate-fade-in">
-          <h1 className="text-3xl font-bold mb-6 text-gray-800">
+        <div className="animate-fade-in space-y-6">
+          <h1 className="text-3xl font-bold text-gray-800">
             Dashboard Overview
           </h1>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard label="Total Pets" value={stats.totalPets} />
-            <StatCard label="Available" value={stats.availablePets} />
-            <StatCard label="Adopted" value={stats.adoptedPets} />
+            <StatCard label="Total Pets" value={pets.length ?? 0} />
+            <StatCard label="Available" value={availablePetsCount} />
+            <StatCard label="Adopted" value={adoptedPetsCount} />
             <StatCard
               label="Pending Requests"
-              value={stats.pendingRequests}
+              value={pendingRequestCount}
               color="text-red-600"
+            />
+          </div>
+          <div className="w-full">
+            <ReactApexChart
+              options={data.options}
+              series={data.series}
+              type="line"
+              height={350}
             />
           </div>
         </div>
