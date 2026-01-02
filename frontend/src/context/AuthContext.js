@@ -21,8 +21,19 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("userInfo");
   };
 
+  //4.  Update user handler
+  // Used for partial updates (e.g. profile or preference updates)
+  const updateUser = (updatedFields) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const newUser = { ...prev, ...updatedFields };
+      localStorage.setItem("userInfo", JSON.stringify(newUser));
+      return newUser;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout,updateUser }}>
       {children}
     </AuthContext.Provider>
   );
