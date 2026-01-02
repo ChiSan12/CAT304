@@ -184,7 +184,7 @@ router.post('/pets/match', async (req, res) => {
       });
     }
 
-    // Fetch all available pets (YOUR ORIGINAL CODE)
+    // Fetch all available pets 
     const allPets = await Pet.find({ adoptionStatus: 'Available' })
       .populate('shelterId', 'name location phone email');
 

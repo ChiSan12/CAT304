@@ -185,7 +185,7 @@ mongoose.connect(process.env.MONGO_URI, {
 })
   .then(() => {
     console.log("MongoDB Connected Successfully!");
-    console.log("📦 Connected DB:", mongoose.connection.name);
+    console.log("Connected DB:", mongoose.connection.name);
   })
   .catch((err) => console.log("MongoDB Connection Error:", err));
 
