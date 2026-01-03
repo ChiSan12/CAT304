@@ -25,10 +25,20 @@ const adopterSchema = new mongoose.Schema({
   // === Personal Profile Information ===
   fullName: { 
     type: String,
-    trim: true
+    required: [true, 'Full name is required'],  //  Added required validation
+    trim: true,
+    minlength: [2, 'Full name must be at least 2 characters'],  
+    validate: {
+      validator: function(v) {
+        // Allow letters (any language), spaces, hyphens, apostrophes, and dots
+        return /^[\p{L}\s\-'.]+$/u.test(v);
+      },
+      message: 'Full name can only contain letters, spaces, hyphens, apostrophes, and dots'
+    }
   },
   phone: { 
     type: String,
+    required: [true, 'Phone number is required'],
     trim: true,
     match: [/^\+601\d{8}$/, 'Invalid Malaysia phone number format (should be +60XXXXXXXXX)']
   },

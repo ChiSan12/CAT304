@@ -283,10 +283,10 @@ router.post('/pets/match', async (req, res) => {
       pets: petsWithScores,
     });
   } catch (error) {
-    console.error("AI Matching Error:", error);
+    console.error("Smart Matching Error:", error);
     res.status(500).json({
       success: false,
-      message: "AI matching failed",
+      message: "Smart matching failed",
     });
   }
 });
@@ -447,30 +447,88 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// 10. Update Adopter Profile
+// 10. Update Adopter Profile (WITH VALIDATION)
 router.put('/:id', async (req, res) => {
   try {
     const { fullName, phone, address, preferences } = req.body;
 
+    // ===== Backend Validation =====
+    
+    // 1. Validate fullName as required
+    if (!fullName || fullName.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Full name is required'
+      });
+    }
+
+    // 2. Validate fullName length
+    if (fullName.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Full name must be at least 2 characters'
+      });
+    }
+
+    // 3. Validate phone as required
+    if (!phone || phone.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required'
+      });
+    }
+
+    // 4. Validate phone format (Start with +60，follow with 1 and 8 digit number)
+    const phoneRegex = /^\+601\d{8}$/;
+    if (!phoneRegex.test(phone.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid Malaysian phone number format (must be +601XXXXXXXX)'
+      });
+    }
+
+    // 5. Update database
     const updatedAdopter = await Adopter.findByIdAndUpdate(
       req.params.id,
       {
-        fullName,
-        phone,
+        fullName: fullName.trim(),
+        phone: phone.trim(),
         address,
         preferences,
         updatedAt: new Date(),
       },
-      { new: true } // Return the updated document
+      { 
+        new: true,           
+        runValidators: true 
+      }
     );
+
+    // 6. Check if user is found
+    if (!updatedAdopter) {
+      return res.status(404).json({
+        success: false,
+        message: "Adopter not found"
+      });
+    }
 
     res.json({
       success: true,
       message: "Profile updated successfully",
       adopter: updatedAdopter,
     });
+
   } catch (error) {
     console.error("Update Profile Error:", error);
+    
+    // Handle Mongoose validation error
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: Object.values(error.errors).map(e => e.message).join(', ')
+      });
+    }
+
+    // Handle other errors
     res.status(500).json({
       success: false,
       message: "Failed to update profile",

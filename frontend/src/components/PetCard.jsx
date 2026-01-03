@@ -20,7 +20,7 @@ export default function PetCard({
       ? "bg-green-100 text-green-700 border-2 border-green-500 hover:bg-red-50 hover:text-red-600 hover:border-red-500"
       : "bg-[#FF8C42] hover:bg-[#e67e3b] text-white";
 
-  // Format pet age to a readable string (supports object, number, or string formats)
+  // Format pet age to a readable string (supports object or string formats)
   // Example outputs: "2 yrs 3 mo", "3 yrs", "8 mo"
   const formatAge = (age) => {
     // If no age data exists, return nothing
@@ -58,7 +58,7 @@ export default function PetCard({
         />
 
         {showScore && pet.compatibilityScore > 0 && (
-          <div className="badge-ai">
+          <div className="badge-smart">
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 fill-current" />
               <span className="font-bold">{pet.compatibilityScore}% Match</span>
@@ -113,7 +113,7 @@ export default function PetCard({
             to={`/pets/${pet._id}`}
             state={{ 
               compatibilityScore: pet.compatibilityScore,
-              fromAIMatch: showScore && pet.compatibilityScore > 0
+              fromSmartMatch: showScore && pet.compatibilityScore > 0
             }}
 
             onClick={() => {

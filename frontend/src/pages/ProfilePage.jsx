@@ -121,7 +121,7 @@ export default function ProfilePage() {
     } else if (!user) {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, navigate]);
 
 
   const handleSaveProfile = async () => {
@@ -130,25 +130,64 @@ export default function ProfilePage() {
     setSaving(true);
     setMessage({ type: "", text: "" });
 
-    let finalPhone = "";
-    if (profile.phone.trim()) {
-      const rawPhone = profile.phone.replace(/\D/g, "");
-      const normalizedPhone = rawPhone.startsWith("0")
-        ? rawPhone.slice(1)
-        : rawPhone;
-
-      // Malaysian mobile number: must start with 1 and be 9 digits
-      if (!/^1\d{8}$/.test(normalizedPhone)) {
-        setMessage({
-          type: "error",
-          text: "Please enter a valid Malaysian mobile number",
-        });
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        setSaving(false);
-        return;
-      }
-      finalPhone = `+60${normalizedPhone}`;
+    // Validate required fields
+    if (!profile.fullName.trim()) {
+      setMessage({
+        type: "error",
+        text: "Full name is required",
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setSaving(false);
+      return;
     }
+
+  if (profile.fullName.trim().length < 2) {
+    setMessage({
+      type: "error",
+      text: "Full name must be at least 2 characters",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setSaving(false);
+    return;
+  }
+
+  if (!/^[\p{L}\s\-'.]+$/u.test(profile.fullName.trim())) {
+    setMessage({
+      type: "error",
+      text: "Full name can only contain letters and spaces",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setSaving(false);
+    return;
+  }
+
+    if (!profile.phone.trim()) {
+      setMessage({
+        type: "error",
+        text: "Phone number is required",
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setSaving(false);
+      return;
+    }
+
+    // Validate phone format
+    const rawPhone = profile.phone.replace(/\D/g, "");
+    const normalizedPhone = rawPhone.startsWith("0")
+      ? rawPhone.slice(1)
+      : rawPhone;
+
+    if (!/^1\d{8}$/.test(normalizedPhone)) {
+      setMessage({
+        type: "error",
+        text: "Please enter a valid Malaysian mobile number (e.g., 0123456789)",
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setSaving(false);
+      return;
+    }
+
+    const finalPhone = `+60${normalizedPhone}`;
 
     try {
       const response = await fetch(
@@ -176,23 +215,24 @@ export default function ProfilePage() {
 
         setMessage({
           type: "success",
-          text: "Profile updated successfully! ",
+          text: "Profile updated successfully!",
         });
 
         window.scrollTo({ top: 0, behavior: "smooth" });
-
         setTimeout(() => setMessage({ type: "", text: "" }), 3000);
       } else {
         setMessage({
           type: "error",
           text: data.message || "Update failed",
         });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } catch (error) {
       setMessage({
         type: "error",
         text: "Network error. Please try again.",
       });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setSaving(false);
     }
@@ -253,7 +293,6 @@ export default function ProfilePage() {
                 : "bg-red-50 border-2 border-red-200"
             }`}
           >
-            {/* Use different icons for success and error */}
             {message.type === "success" ? (
               <CheckCircle className="w-5 h-5 text-green-600" />
             ) : (
@@ -285,7 +324,7 @@ export default function ProfilePage() {
             <div className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Full Name
+                  Full Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -298,6 +337,7 @@ export default function ProfilePage() {
                   }
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF8C42] focus:border-[#FF8C42] transition-all"
                   placeholder="Your full name"
+                  required
                 />
               </div>
 
@@ -318,28 +358,31 @@ export default function ProfilePage() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Phone Number
+                  Phone Number <span className="text-red-500">*</span>
                 </label>
 
                 <div className="flex items-center w-full border-2 border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-[#FF8C42] focus-within:border-[#FF8C42]">
                   <Phone className="w-5 h-5 text-gray-400 ml-3 mr-2" />
 
-                  {/* Fixed country code */}
                   <div className="px-3 py-3 text-gray-700 text-sm font-semibold border-r border-gray-300 bg-gray-50">
                     +60
                   </div>
 
                   <input
                     type="tel"
-                    maxLength={10}
+                    maxLength={11}
                     value={profile.phone}
                     onChange={(e) =>
                       setProfile((prev) => ({ ...prev, phone: e.target.value }))
                     }
                     className="flex-1 bg-transparent border-0 pl-3 pr-4 py-3 focus:outline-none focus:ring-0"
                     placeholder="123456789"
+                    required
                   />
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  📱 Format: 01XXXXXXXX (must be 9 digits after removing leading 0)
+                </p>
               </div>
             </div>
           </div>

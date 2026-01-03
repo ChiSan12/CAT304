@@ -12,7 +12,7 @@ export default function PetBrowsePage() {
 const [pets, setPets] = useState([]);
 const [filteredPets, setFilteredPets] = useState([]);
 const [loading, setLoading] = useState(true);
-const [showAIMatch, setShowAIMatch] = useState(false);
+const [showSmartMatch, setShowSmartMatch] = useState(false);
 const [matchingWarning, setMatchingWarning] = useState(null);
 const [myRequests, setMyRequests] = useState([]);
 
@@ -43,20 +43,20 @@ useEffect(() => {
     }
 
 
-    const savedAIMatch = sessionStorage.getItem('aiMatchActive');
-    const savedAIMatchPets = sessionStorage.getItem('aiMatchPets');
+    const savedSmartMatch = sessionStorage.getItem('smartMatchActive');
+    const savedSmartMatchPets = sessionStorage.getItem('smartMatchPets');
     const savedFilter = sessionStorage.getItem('filterActive');
     const savedFilters = sessionStorage.getItem('filters');
     const savedFilteredPets = sessionStorage.getItem('filteredPets');
   
-    if (savedAIMatch === 'true' && savedAIMatchPets) {
-      // Retrieve AI Match
+    if (savedSmartMatch === 'true' && savedSmartMatchPets) {
+      // Retrieve Smart Match
       try {
-        const parsedPets = JSON.parse(savedAIMatchPets);
+        const parsedPets = JSON.parse(savedSmartMatchPets);
         setFilteredPets(parsedPets);
-        setShowAIMatch(true);
+        setShowSmartMatch(true);
       } catch (e) {
-        console.error('Failed to restore AI match:', e);
+        console.error('Failed to restore Smart Pet match:', e);
       }
     } else if (savedFilter === 'true' && savedFilters && savedFilteredPets) {
       // Retrive Filter
@@ -95,9 +95,9 @@ useEffect(() => {
       const data = await response.json();
       if (data.success) {
         setPets(data.pets);
-        const savedAIMatch = sessionStorage.getItem('aiMatchActive');
+        const savedSmartMatch = sessionStorage.getItem('smartMatchActive');
         const savedFilter = sessionStorage.getItem('filterActive');
-        if (savedAIMatch !== 'true' && savedFilter !== 'true') {
+        if (savedSmartMatch !== 'true' && savedFilter !== 'true') {
           setFilteredPets(data.pets);
         }
       }  
@@ -137,17 +137,17 @@ useEffect(() => {
         pet.labels.temperament.includes(filters.temperament)
       );
     setFilteredPets(result);
-    setShowAIMatch(false); // Turn off Smart Matching banner when manually filtering
+    setShowSmartMatch(false); // Turn off Smart Matching banner when manually filtering
     setMatchingWarning(null); // Clear any warnings
     sessionStorage.setItem('filterActive', 'true');
     sessionStorage.setItem('filters', JSON.stringify(filters));
     sessionStorage.setItem('filteredPets', JSON.stringify(result));
-    sessionStorage.removeItem('aiMatchActive');
-    sessionStorage.removeItem('aiMatchPets');
+    sessionStorage.removeItem('smartMatchActive');
+    sessionStorage.removeItem('smartMatchPets');
   };
 
   //  Improved Smart Matching with Preferences Check
-  const getAIMatches = async () => {
+  const getSmartMatches = async () => {
     if (!user || !user.id) {
     alert("Please login to use Smart Pet Matching");
     navigate("/login");
@@ -179,10 +179,10 @@ useEffect(() => {
       
       if (data.success) { 
         setFilteredPets(data.pets); 
-        setShowAIMatch(true);
+        setShowSmartMatch(true);
 
-        sessionStorage.setItem('aiMatchActive', 'true');
-        sessionStorage.setItem('aiMatchPets', JSON.stringify(data.pets));
+        sessionStorage.setItem('smartMatchActive', 'true');
+        sessionStorage.setItem('smartMatchPets', JSON.stringify(data.pets));
         sessionStorage.removeItem('filterActive');
         sessionStorage.removeItem('filters');
         sessionStorage.removeItem('filteredPets');
@@ -208,10 +208,10 @@ useEffect(() => {
   const resetFilters = () => {
     setFilters({ species: "All", size: "All", temperament: "All" });
     setFilteredPets(pets);
-    setShowAIMatch(false);
+    setShowSmartMatch(false);
     setMatchingWarning(null);
-    sessionStorage.removeItem('aiMatchActive');
-    sessionStorage.removeItem('aiMatchPets');
+    sessionStorage.removeItem('smartMatchActive');
+    sessionStorage.removeItem('smartMatchPets');
     sessionStorage.removeItem('filterActive');
     sessionStorage.removeItem('filters');
     sessionStorage.removeItem('filteredPets');
@@ -290,7 +290,7 @@ useEffect(() => {
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="mb-6">
             <button
-              onClick={getAIMatches}
+              onClick={getSmartMatches}
               disabled={!isProfileComplete}
               className={`w-full py-4 rounded-lg font-semibold flex items-center justify-center gap-3 shadow-lg transition-all
                 ${
@@ -365,7 +365,7 @@ useEffect(() => {
         </div>
 
         {/* Smart Matching Banner */}
-        {showAIMatch && (
+        {showSmartMatch && (
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 flex items-center gap-3 animate-fade-in">
             <Sparkles className="w-5 h-5 text-[#FF8C42]" />
             <p className="text-orange-900 font-medium">Showing smart-matched pets based on your preferences</p>
@@ -393,7 +393,7 @@ useEffect(() => {
               <PetCard
                 key={pet._id}
                 pet={pet}
-                showScore={showAIMatch}
+                showScore={showSmartMatch}
                 isRequested={myRequests.includes(pet._id)}
                 onToggleRequest={toggleAdoptionStatus}
                 // onViewDetails={() => navigate(`/pets/${pet._id}`)}
