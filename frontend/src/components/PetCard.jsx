@@ -20,7 +20,7 @@ export default function PetCard({
       ? "bg-green-100 text-green-700 border-2 border-green-500 hover:bg-red-50 hover:text-red-600 hover:border-red-500"
       : "bg-[#FF8C42] hover:bg-[#e67e3b] text-white";
 
-  // Format pet age to a readable string (supports object, number, or string formats)
+  // Format pet age to a readable string (supports object or string formats)
   // Example outputs: "2 yrs 3 mo", "3 yrs", "8 mo"
   const formatAge = (age) => {
     // If no age data exists, return nothing
