@@ -36,29 +36,37 @@ export default function RegisterPage() {
   const validateForm = () => {
     const newErrors = {};
 
-
-    if (!formData.phone.trim()) {
-    newErrors.phone = 'Phone number is required for account registration';
+    //1. Full Name Validation
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full name is required";
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = "Full name must be at least 2 characters";
+    } else if (!/^[\p{L}\s\-'.]+$/u.test(formData.fullName.trim())) {
+      newErrors.fullName = "Full name can only contain letters and spaces";
     }
-
+    
+    //2. Email Validation
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
       newErrors.email = "Invalid email format";
     }
 
+    //3. Phone Validation
+    if (!formData.phone.trim()) {
+    newErrors.phone = 'Phone number is required for account registration';
+    }
+
+    //4. Password Validation
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
 
+    //5. Confirm Password Validation
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = "Full name is required";
     }
 
     setErrors(newErrors);
