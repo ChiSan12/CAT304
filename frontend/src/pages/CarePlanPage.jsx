@@ -348,99 +348,6 @@ export default function CarePlanPage({ pet, onClose }) {
   );
 }
 
-// function CareScheduleCard({ pet }) {
-//   const health = pet.petId.healthStatus || {};
-//   const nextDate = health.nextVaccinationDue
-//     ? new Date(health.nextVaccinationDue)
-//     : null;
-
-//   const daysLeft = nextDate
-//     ? Math.ceil((nextDate - new Date()) / (1000 * 60 * 60 * 24))
-//     : null;
-
-//   const statusStyle =
-//     daysLeft === null
-//       ? 'bg-gray-100 text-gray-600'
-//       : daysLeft <= 3
-//       ? 'bg-red-100 text-red-700'
-//       : daysLeft <= 7
-//       ? 'bg-yellow-100 text-yellow-700'
-//       : 'bg-green-100 text-green-700';
-
-//   const statusText =
-//     daysLeft === null
-//       ? 'No schedule'
-//       : daysLeft <= 0
-//       ? 'Overdue'
-//       : `Due in ${daysLeft} days`;
-
-//   return (
-//     <div className="bg-white rounded-2xl border p-6 shadow-sm">
-//       {/* Header */}
-//       <div className="flex items-center gap-3 mb-6">
-//         <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-xl">
-//           🩺
-//         </div>
-//         <div>
-//           <h4 className="text-xl font-bold text-gray-800">
-//             Care & Health Reminders
-//           </h4>
-//           <p className="text-sm text-gray-500">
-//             Keep track of important medical schedules
-//           </p>
-//         </div>
-//       </div>
-
-//       {/* Vaccination Card */}
-//       <div className="border rounded-xl p-5 bg-gradient-to-br from-yellow-50 to-amber-100 border-amber-200">
-//         <div className="flex justify-between items-start mb-4">
-//           <div>
-//             <h5 className="font-semibold text-lg text-gray-800">
-//               Vaccination
-//             </h5>
-//             <p className="text-sm text-gray-600">
-//               Core vaccine schedule
-//             </p>
-//           </div>
-
-//           {/* Status badge */}
-//           <span
-//             className={`px-4 py-1 rounded-full text-sm font-medium ${statusStyle}`}
-//           >
-//             {health.vaccinated ? 'Completed' : statusText}
-//           </span>
-//         </div>
-
-//         {/* Timeline */}
-//         <div className="space-y-3 mt-4">
-//           <div className="flex items-center gap-3">
-//             <div className="w-2 h-2 rounded-full bg-green-500" />
-//             <p className="text-sm text-gray-700">
-//               Previous vaccination completed
-//             </p>
-//           </div>
-
-//           {nextDate && (
-//             <div className="flex items-center gap-3">
-//               <div
-//                 className={`w-2 h-2 rounded-full ${
-//                   daysLeft <= 7 ? 'bg-yellow-500' : 'bg-blue-500'
-//                 }`}
-//               />
-//               <p className="text-sm text-gray-700">
-//                 Next vaccination scheduled on{' '}
-//                 <span className="font-medium">
-//                   {nextDate.toLocaleDateString()}
-//                 </span>
-//               </p>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
 function PetUpdateCard({ pet, user }) {
   const [notes, setNotes] = useState('');
   const [weight, setWeight] = useState('');
@@ -505,7 +412,7 @@ function PetUpdateCard({ pet, user }) {
     <div className="bg-white rounded-2xl border p-6 shadow-sm">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 flex items-center justify-center text-xl shadow-sm">
+        <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-xl">
           📸
         </div>
         <div>
@@ -605,90 +512,6 @@ function PetUpdateCard({ pet, user }) {
     </div>
   );
 }
-
-// function VetClinicCard() {
-//   const clinics = [
-//     {
-//       name: 'Happy Paws Veterinary Clinic',
-//       address: 'Georgetown, Penang',
-//       distance: '1.2 km',
-//     },
-//     {
-//       name: 'PetCare Animal Hospital',
-//       address: 'Jelutong, Penang',
-//       distance: '3.8 km',
-//     },
-//   ];
-
-//   return (
-//     <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-//       {/* Header */}
-//       <div className="flex items-center gap-3 mb-6">
-//         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-50 to-blue-100 text-indigo-600 flex items-center justify-center text-xl shadow-sm">
-//           🏥
-//         </div>
-//         <div>
-//           <h4 className="text-xl font-bold text-gray-800">
-//             Nearby Veterinary Clinics
-//           </h4>
-//           <p className="text-sm text-gray-500">
-//             Trusted clinics near your location
-//           </p>
-//         </div>
-//       </div>
-
-//       {/* Clinic List */}
-//       <div className="space-y-4">
-//         {clinics.map((clinic, idx) => (
-//           <div
-//             key={idx}
-//             className="flex items-center justify-between rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white px-4 py-4 hover:shadow-md transition"
-//           >
-//             <div>
-//               <p className="font-semibold text-gray-800">
-//                 {clinic.name}
-//               </p>
-//               <p className="text-sm text-gray-500">
-//                 {clinic.address}
-//               </p>
-//             </div>
-
-//             <div className="flex items-center gap-4">
-//               <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-600">
-//                 {clinic.distance}
-//               </span>
-
-//               <button className="text-sm font-medium text-slate-600 hover:text-slate-800 transition">
-//                 →
-//               </button>
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-
-//       {/* Footer Action */}
-//       <button className="mt-6 w-full rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white px-4 py-3 text-sm font-medium text-slate-600 hover:border-gray-300 hover:text-slate-800 transition">
-//         View more clinics on map
-//       </button>
-//     </div>
-//   );
-// }
-
-// function EducationCard({ onOpen }) {
-//   return (
-//     <div className="bg-white rounded-xl border p-5 cursor-pointer hover:shadow-md transition">
-//       <h4
-//         onClick={onOpen}
-//         className="font-semibold text-lg flex items-center gap-2 hover:text-[#FF8C42]"
-//       >
-//         📚 Educational Resources
-//       </h4>
-//       <p className="text-sm text-gray-500 mt-2">
-//         Training, nutrition, and ownership guides for adopters
-//       </p>
-//     </div>
-//   );
-// }
 
 function CategoryCard({ icon, bg, title, description, onClick }) {
   return (

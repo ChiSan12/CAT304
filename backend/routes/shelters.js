@@ -34,6 +34,39 @@ router.get('/adopted-pets', async (req, res) => {
   }
 });
 
+// GET public shelter contact (Footer)
+router.get('/public/contact', async (req, res) => {
+  try {
+    const shelter = await Shelter.findOne({ isAdmin: true }).select(
+      'email phone address name'
+    );
+
+    if (!shelter) {
+      return res.status(404).json({
+        success: false,
+        message: 'Shelter not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      contact: {
+        email: shelter.email,
+        phone: shelter.phone,
+        address: shelter.address,
+        name: shelter.name
+      }
+    });
+
+  } catch (err) {
+    console.error('Fetch shelter contact error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to load shelter contact'
+    });
+  }
+});
+
 // 1. DASHBOARD STATS
 router.get('/:shelterId/stats', async (req, res) => {
   try {
@@ -225,7 +258,6 @@ router.patch('/:shelterId/requests/:requestId/approve', async (req, res) => {
     // 2. Pet set as ddopted
     pet.adoptionStatus = 'Adopted';
 
-    // await generateVaccinationReminder(pet);
     /* ================= 🔥 AUTOMATED CARE REMINDERS 🔥 ================= */
 
     // Fetch reminder templates for this shelter
@@ -247,8 +279,8 @@ router.patch('/:shelterId/requests/:requestId/approve', async (req, res) => {
       dueDate: new Date(
         Date.now() + t.daysAfterAdoption * 24 * 60 * 60 * 1000
       ),
-      status: 'Pending',                  // ✅ REQUIRED
-      createdBy: 'System'                 // ✅ ENUM SAFE
+      status: 'Pending',                 
+      createdBy: 'System'                 
     }));
 
     await CareReminder.deleteMany({
