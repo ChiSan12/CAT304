@@ -23,8 +23,8 @@ export default function PetDetailPage() {
 
   // Smart Pet Matching detection
   const matchScore = navState.compatibilityScore ?? pet?.compatibilityScore;
-  const isAIMatch =
-    navState.fromAIMatch || pet?._fromAI || (matchScore !== undefined && matchScore > 0);
+  const isSmartMatch =
+    navState.fromSmartMatch || pet?._fromSmart || (matchScore !== undefined && matchScore > 0);
 
   const [isRequested, setIsRequested] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -88,7 +88,7 @@ export default function PetDetailPage() {
           setPet({
           ...data.pet,
           compatibilityScore: navState.compatibilityScore ?? data.pet.compatibilityScore,
-          _fromAI: navState.fromAIMatch ?? data.pet._fromAI
+          _fromSmart: navState.fromSmartMatch ?? data.pet._fromSmart
           });
         }
       } catch (error) {
@@ -99,7 +99,7 @@ export default function PetDetailPage() {
     };
 
     fetchPet();
-  }, [petId, navState.compatibilityScore, navState.fromAIMatch]);
+  }, [petId, navState.compatibilityScore, navState.fromSmartMatch]);
 
   // Check request status
   useEffect(() => {
@@ -188,7 +188,7 @@ export default function PetDetailPage() {
 
       <div className="content-wrapper">
         {/* Smart Pet Matching */}
-        {isAIMatch && (
+        {isSmartMatch && (
           <div className="mb-8 bg-gradient-to-r from-orange-100 to-amber-50 border border-orange-200 rounded-2xl p-6 flex gap-4">
             <div className="p-3 bg-white rounded-full text-[#FF8C42]">
               <Sparkles className="w-6 h-6" />

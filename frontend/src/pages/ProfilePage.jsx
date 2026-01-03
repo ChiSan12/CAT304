@@ -381,7 +381,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  📱 Format: 01XXXXXXXX (9-10 digits)
+                  📱 Format: 01XXXXXXXX (must be 9 digits after removing leading 0)
                 </p>
               </div>
             </div>

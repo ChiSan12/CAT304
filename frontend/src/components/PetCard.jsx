@@ -58,7 +58,7 @@ export default function PetCard({
         />
 
         {showScore && pet.compatibilityScore > 0 && (
-          <div className="badge-ai">
+          <div className="badge-smart">
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 fill-current" />
               <span className="font-bold">{pet.compatibilityScore}% Match</span>
@@ -113,7 +113,7 @@ export default function PetCard({
             to={`/pets/${pet._id}`}
             state={{ 
               compatibilityScore: pet.compatibilityScore,
-              fromAIMatch: showScore && pet.compatibilityScore > 0
+              fromSmartMatch: showScore && pet.compatibilityScore > 0
             }}
 
             onClick={() => {

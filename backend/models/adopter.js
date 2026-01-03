@@ -31,7 +31,7 @@ const adopterSchema = new mongoose.Schema({
     validate: {
       validator: function(v) {
         // Allow letters (any language), spaces, hyphens, apostrophes, and dots
-        return /^[a-zA-Z\s\-'.]+$/.test(v);
+        return /^[\p{L}\s\-'.]+$/u.test(v);
       },
       message: 'Full name can only contain letters, spaces, hyphens, apostrophes, and dots'
     }
