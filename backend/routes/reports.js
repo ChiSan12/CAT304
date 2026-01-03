@@ -48,7 +48,6 @@ router.post('/', upload.single('photoUrl'), async (req, res) => {
 });
 
 
-// --- GET REPORTS (Admin or User) ---
 // GET REPORTS (Admin or User)
 router.get('/', async (req, res) => {
   try {
