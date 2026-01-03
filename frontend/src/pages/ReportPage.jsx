@@ -101,6 +101,38 @@ function SubmissionModal({ onClose, redirectTo }) {
   );
 }
 
+// ===================== Login Prompt Modal =====================
+function LoginPromptModal({ onConfirm, onCancel }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 text-center relative">
+        <div className="text-5xl mb-4 animate-bounce">⚠️</div>
+        <h2 className="text-2xl font-bold text-orange-500 mb-2">
+          Login Required
+        </h2>
+        <p className="text-gray-700 mb-6">
+          Only logged-in users can access the Report Page.  
+          Do you want to log in now?
+        </p>
+        <div className="flex justify-center gap-4">
+          <button
+            onClick={onConfirm}
+            className="px-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition"
+          >
+            Yes
+          </button>
+          <button
+            onClick={onCancel}
+            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition"
+          >
+            No
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ===================== Main Component =====================
 export default function ReportPage() {
   const { user } = useAuth();
@@ -119,6 +151,7 @@ export default function ReportPage() {
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false); // <-- ADD THIS
 
   // Track Me button
   const trackUser = () => {
@@ -177,14 +210,26 @@ export default function ReportPage() {
     }
   };
 
+  // Show login modal if user not logged in on page load
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-    }
-  }, [user, navigate]);
+    if (!user) setShowLoginModal(true);
+  }, [user]);
+
+  // Login modal handlers
+  const handleLoginConfirm = () => navigate("/login");
+  const handleLoginCancel = () => navigate(-1); // <-- Go back to previous page
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
+      {/* Login Modal */}
+      {showLoginModal && (
+        <LoginPromptModal
+          onConfirm={handleLoginConfirm}
+          onCancel={handleLoginCancel}
+        />
+      )}
+
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-orange-500 to-orange-400 text-white py-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
@@ -431,6 +476,8 @@ export default function ReportPage() {
           </div>
         </div>
       </div>
+
+      
 
       {/* Modal */}
       {showModal && (
