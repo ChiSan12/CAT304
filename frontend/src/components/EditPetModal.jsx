@@ -16,7 +16,8 @@ export default function EditPetModal({ isOpen, onClose, onSave, pet }) {
     temperament: [],
     goodWith: [],
     vaccinated: false,
-    neutered: false
+    neutered: false,
+    medicalConditions: ''
   });
   
   const [loading, setLoading] = useState(false);
@@ -39,7 +40,8 @@ export default function EditPetModal({ isOpen, onClose, onSave, pet }) {
         temperament: pet.labels?.temperament || [],
         goodWith: pet.labels?.goodWith || [],
         vaccinated: pet.healthStatus?.vaccinated || false,
-        neutered: pet.healthStatus?.neutered || false
+        neutered: pet.healthStatus?.neutered || false,
+        medicalConditions: pet.healthStatus?.medicalConditions?.join(', ') || ''
       });
     }
   }, [pet]);
@@ -140,7 +142,13 @@ export default function EditPetModal({ isOpen, onClose, onSave, pet }) {
         },
         healthStatus: {
           vaccinated: formData.vaccinated,
-          neutered: formData.neutered
+          neutered: formData.neutered,
+            medicalConditions: formData.medicalConditions
+            ? formData.medicalConditions
+                .split(',')
+                .map(c => c.trim())
+                .filter(Boolean)
+            : []
         }
       };
 
@@ -398,6 +406,19 @@ export default function EditPetModal({ isOpen, onClose, onSave, pet }) {
                 <span className="text-gray-700 font-medium">Neutered/Spayed</span>
               </label>
             </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Medical Conditions (optional)
+            </label>
+            <textarea
+              name="medicalConditions"
+              value={formData.medicalConditions}
+              onChange={handleChange}
+              placeholder="e.g. Skin allergy, Heart condition"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none"
+            />
           </div>
 
           {/* Image URL */}
