@@ -283,10 +283,10 @@ router.post('/pets/match', async (req, res) => {
       pets: petsWithScores,
     });
   } catch (error) {
-    console.error("AI Matching Error:", error);
+    console.error("Smart Matching Error:", error);
     res.status(500).json({
       success: false,
-      message: "AI matching failed",
+      message: "Smart matching failed",
     });
   }
 });
