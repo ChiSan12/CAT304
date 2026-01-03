@@ -13,20 +13,6 @@ import {
 import HomeCareReminderPreview from "../components/HomeCareReminderPreview";
 
 export default function HomePage({ goTo }) {
-  const [contact, setContact] = useState(null);
-  const [contactLoading, setContactLoading] = useState(true);
-
-  useEffect(() => {
-   fetch("http://localhost:5000/api/shelters/public/contact")
-     .then(res => res.json())
-     .then(data => {
-        if (data.success) {
-         setContact(data.contact);
-        }
-       setContactLoading(false);
-     })
-     .catch(() => setContactLoading(false));
-  }, []);
 
   return (
     <div className="w-full">
@@ -139,11 +125,11 @@ export default function HomePage({ goTo }) {
               rescue efficiency and long-term animal welfare.
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+            {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
               <Stat number="120+" label="Pets Rescued" />
               <Stat number="80+" label="Successful Adoptions" />
               <Stat number="200+" label="Stray Reports Logged" />
-            </div>
+            </div> */}
 
             {/* ================= CARE REMINDER NOTIFICATION ================= */}
             <div className="lg:col-span-12 flex justify-center mt-10">
@@ -202,30 +188,6 @@ export default function HomePage({ goTo }) {
               </span>
             </div>
           </div>
-          {/* <div className="space-y-6 text-left">
-            {contactLoading && (
-              <p className="text-gray-400 text-sm">Loading contact info…</p>
-            )}
-
-            {contact && (
-              <>
-                <div className="flex items-center gap-4">
-                  <Mail size={24} />
-                  <span>{contact.email}</span>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <Phone size={24} />
-                  <span>{contact.phone}</span>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <MapPin size={24} />
-                  <span>{contact.address}</span>
-                </div>
-              </>
-            )}
-          </div> */}
         </div>
 
         <p className="text-center text-sm text-gray-400 mt-16">
