@@ -53,18 +53,6 @@ export default function ShelterPostAdoptionDetail() {
   );
 }
 
-// function ReminderCard({ r }) {
-//   return (
-//     <div className="bg-white border rounded-lg p-4 mb-3">
-//       <h4 className="font-medium">{r.title}</h4>
-//       <p className="text-sm text-gray-500">
-//         Due: {new Date(r.dueDate).toLocaleDateString()}
-//       </p>
-//       <span className="text-xs text-orange-600">{r.status}</span>
-//     </div>
-//   );
-// }
-
 function UpdateCard({ u }) {
   return (
     <div className="bg-white border rounded-lg p-4 mb-4">

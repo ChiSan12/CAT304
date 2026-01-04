@@ -549,9 +549,9 @@ function PetUpdateCard({ pet, user }) {
                 />
               </svg>
               <p className="text-sm text-gray-500">
-                <span className="font-semibold">Click to upload</span> or drag and drop
+                <span className="font-semibold">Click to upload</span> 
               </p>
-              <p className="text-xs text-gray-400">PNG, JPG or GIF</p>
+              {/* <p className="text-xs text-gray-400">PNG, JPG or GIF</p> */}
             </div>
             <input
               type="file"

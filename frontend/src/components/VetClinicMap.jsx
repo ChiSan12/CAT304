@@ -11,7 +11,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import axios from "axios";
 
-/* ================= LEAFLET MARKER FIX ================= */
+//LEAFLET MARKER FIX 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
@@ -19,7 +19,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
 
-/* ================= MAP CLICK HANDLER ================= */
+// MAP CLICK HANDLER 
 function MapEvents({ enabled, onPickLocation }) {
   useMapEvents({
     click(e) {
@@ -31,7 +31,7 @@ function MapEvents({ enabled, onPickLocation }) {
   return null;
 }
 
-/* ================= FLY TO CLINIC ================= */
+// FLY TO CLINIC
 function FlyToClinic({ clinic }) {
   const map = useMap();
 
@@ -51,17 +51,14 @@ function FlyToClinic({ clinic }) {
   return null;
 }
 
-/* ================= MAIN COMPONENT ================= */
 export default function VetClinicMap() {
-  /* 🔹 MODIFIED: state moved INSIDE component */
-  const [location, setLocation] = useState(null); // [lat, lng]
-  const [mode, setMode] = useState("auto"); // auto | manual
+  const [location, setLocation] = useState(null); 
+  const [mode, setMode] = useState("auto"); 
   const [clinics, setClinics] = useState([]);
   const [selectedClinic, setSelectedClinic] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  /* ================= FETCH CLINICS ================= */
   const fetchClinics = async (lat, lng) => {
     try {
       const res = await axios.get(
@@ -75,7 +72,7 @@ export default function VetClinicMap() {
     }
   };
 
-  /* ================= AUTO LOCATE ================= */
+  //AUTO LOCATE
   const locateMe = () => {
     if (!navigator.geolocation) {
       setError("Geolocation not supported");
@@ -95,18 +92,15 @@ export default function VetClinicMap() {
     );
   };
 
-  /* 🔹 MODIFIED: auto locate on first load */
   useEffect(() => {
     locateMe();
   }, []);
 
-  /* 🔹 MODIFIED: fetch clinics when location changes */
   useEffect(() => {
     if (!location) return;
     fetchClinics(location[0], location[1]);
   }, [location]);
 
-  /* ================= STATES ================= */
   if (loading) {
     return (
       <div className="text-sm text-gray-500 text-center py-8">
@@ -125,11 +119,8 @@ export default function VetClinicMap() {
 
   if (!location) return null;
 
-  /* ================= UI ================= */
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
-
-      {/* 🔹 MODIFIED: MODE TOGGLE BUTTONS */}
       <div className="flex gap-3">
         <button
           onClick={locateMe}

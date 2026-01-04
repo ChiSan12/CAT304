@@ -58,8 +58,6 @@ export default function CareReminderList({ petId, shelterId, adopterId, role = '
 
     if (data.success) {
       setReminders(prev => [...prev, data.reminder]);
-
-      // Reset UI
       setShowForm(false);
       setTitle('');
       setDueDate('');
