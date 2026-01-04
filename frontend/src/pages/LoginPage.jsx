@@ -1,16 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { Mail, Lock, Heart, AlertCircle } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { Mail, Lock, Heart, AlertCircle, CheckCircle } from "lucide-react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const location = useLocation();
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  
+useEffect(() => {
+  if (location.state?.fromRegister) {
+    setSuccessMessage("Account created successfully. Please log in.");
+  }
+}, [location.state]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +45,7 @@ const LoginPage = () => {
       if (data.success) {
         const userData = { ...data.adopter, id: data.adopterId, role: "adopter" };
         login(userData);
-        navigate("/"); 
+        navigate("/", { replace: true }); 
       } else {
         setError(data.message || "Login failed. Please check your credentials.");
       }
@@ -102,6 +110,13 @@ const LoginPage = () => {
             <p className="text-gray-600 mb-8">
               Enter your credentials to access your account
             </p>
+
+            {successMessage && (
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-green-800">{successMessage}</p>
+              </div>
+            )}
 
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">

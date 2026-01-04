@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Search, Filter, AlertCircle  } from "lucide-react";
+import { Sparkles, Search, Filter, AlertCircle, CheckCircle  } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import PetCard from "../components/PetCard";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ const [loading, setLoading] = useState(true);
 const [showSmartMatch, setShowSmartMatch] = useState(false);
 const [matchingWarning, setMatchingWarning] = useState(null);
 const [myRequests, setMyRequests] = useState([]);
+const [showConfirmModal, setShowConfirmModal] = useState(false);
 
 const [filters, setFilters] = useState({
   species: 'All',
@@ -258,12 +259,10 @@ useEffect(() => {
         const data = await res.json();
 
         if (data.success) {
-          alert("Request submitted! 🎉");
           setMyRequests((prev) => [...prev, petId]);
+          setShowConfirmModal(true);
           await fetchPets();
-        } else {
-          alert(data.message);
-        }
+        } 
       }
     } catch (error) {
       alert("Something went wrong. Please try again.");
@@ -408,6 +407,24 @@ useEffect(() => {
             <h3 className="text-xl font-semibold text-gray-700">
               No pets found
             </h3>
+          </div>
+        )}
+
+        {showConfirmModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 text-center">
+              <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold mb-2">Request Sent</h3>
+              <p className="text-gray-600 mb-4">
+                Your adoption request has been submitted successfully.
+              </p>
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="mt-2 bg-[#FF8C42] text-white px-6 py-2 rounded-xl"
+              >
+                Okay
+              </button>
+            </div>
           </div>
         )}
       </div>

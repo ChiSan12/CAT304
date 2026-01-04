@@ -1,5 +1,5 @@
 import React from "react";
-import { Heart, MapPin, Star, Check, ArrowRight } from "lucide-react";
+import { Heart, MapPin, Star, Check, ArrowRight,XCircle } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 export default function PetCard({
@@ -17,7 +17,7 @@ export default function PetCard({
     pet.adoptionStatus !== "Available"
       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
       : isRequested
-      ? "bg-green-100 text-green-700 border-2 border-green-500 hover:bg-red-50 hover:text-red-600 hover:border-red-500"
+      ? "bg-red-50 text-red-600 border-2 border-red-500 hover:bg-red-100"
       : "bg-[#FF8C42] hover:bg-[#e67e3b] text-white";
 
   // Format pet age to a readable string (supports object or string formats)
@@ -133,7 +133,7 @@ export default function PetCard({
               "Not Available"
             ) : isRequested ? (
               <>
-                <Check className="w-5 h-5" /> Requested
+                <XCircle className="w-5 h-5" /> Cancel Request
               </>
             ) : (
               <>
