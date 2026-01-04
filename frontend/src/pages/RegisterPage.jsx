@@ -129,7 +129,9 @@ export default function RegisterPage() {
           phone: ''
         });
 
-        navigate("/login");
+        navigate("/login", {
+          state: { fromRegister: true }
+        });
       } else {
         setMessage({
           type: "error",
