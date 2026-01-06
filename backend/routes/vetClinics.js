@@ -18,9 +18,9 @@ router.get("/nearby", async (req, res) => {
             type: "Point",
             coordinates: [parseFloat(lng), parseFloat(lat)]
           },
-          distanceField: "distance",   // ← THIS is what you’re missing
+          distanceField: "distance",   
           spherical: true,
-          maxDistance: 8000            // 8 km
+          maxDistance: 8000            
         }
       },
       {

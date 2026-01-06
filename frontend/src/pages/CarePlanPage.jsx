@@ -9,15 +9,12 @@ import {
   OwnershipTips,
 } from '../components/EducationResources';
 
-/* ================= POST-ADOPTION MODULE ================= */
-
 export default function CarePlanPage({ pet, onClose }) {
   const { user } = useAuth();
   const [isLarge, setIsLarge] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
   const contentRef = React.useRef(null);
 
-  // auto-scroll when section changes
   useEffect(() => {
     if (contentRef.current) {
     contentRef.current.scrollTo({
@@ -34,7 +31,7 @@ export default function CarePlanPage({ pet, onClose }) {
           isLarge ? 'w-[95%] max-w-6xl' : 'w-full max-w-4xl'
         }`}
       >
-        {/* Header */}
+
         <div className="bg-gradient-to-r from-[#FF8C42] to-[#FFA726] text-white px-6 py-3 flex justify-between rounded-t-2xl">
           <div className="flex items-center gap-3">
           {activeSection && (
@@ -51,7 +48,6 @@ export default function CarePlanPage({ pet, onClose }) {
           </div>
 
             <div className="flex gap-2">
-            {/* Maximize/Minimize Button */}
             <button 
               onClick={() => setIsLarge(!isLarge)}
               className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-white/20 active:bg-white/30 transition-all duration-200 transform hover:scale-110 active:scale-95 group relative overflow-hidden"
@@ -60,8 +56,6 @@ export default function CarePlanPage({ pet, onClose }) {
             >
               {/* Animated background effect */}
               <span className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              
-              {/* Icon with smooth transition */}
               <svg 
                 className="w-5 h-5 relative z-10 transition-all duration-300 group-hover:scale-110" 
                 viewBox="0 0 24 24" 
@@ -88,8 +82,6 @@ export default function CarePlanPage({ pet, onClose }) {
                 )}
               </svg>
             </button>
-
-            {/* Close Button */}
             <button 
               onClick={onClose}
               className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-red-500/90 active:bg-red-600 transition-all duration-200 transform hover:scale-110 active:scale-95 group"
@@ -105,7 +97,7 @@ export default function CarePlanPage({ pet, onClose }) {
 
         {/* Content */}
         <div
-          ref={contentRef} // ⭐ MODIFIED
+          ref={contentRef}
           className="flex-1 p-6 overflow-y-auto transition-all duration-300"
         >
 
@@ -146,11 +138,9 @@ export default function CarePlanPage({ pet, onClose }) {
             </div>
           )}
 
-          {/* 🩺 CARE & HEALTH */}
+          {/* CARE & HEALTH */}
           {activeSection === 'care' && (
             <div className="max-w-4xl mx-auto animate-fade-in space-y-6">
-              
-              {/* Header */}
               <div className="bg-white rounded-2xl border p-6 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-xl">
@@ -166,8 +156,6 @@ export default function CarePlanPage({ pet, onClose }) {
                   </div>
                 </div>
               </div>
-
-              {/* 🔔 Dynamic Reminder List */}
               <CareReminderList
                 petId={pet.petId._id}
                 role="adopter"
@@ -175,14 +163,14 @@ export default function CarePlanPage({ pet, onClose }) {
             </div>
           )}
 
-          {/* 📸 PET UPDATE */}
+          {/*  PET UPDATE */}
           {activeSection === 'update' && (
             <div className="max-w-4xl mx-auto animate-fade-in">
               <PetUpdateCard pet={pet} user={user} />
             </div>
           )}
 
-          {/* 🏥 VET CLINICS */}
+          {/* VET CLINICS */}
           {activeSection === 'vet' && (
             <div className="max-w-4xl mx-auto animate-fade-in">
               <VetClinicMap/>
@@ -194,8 +182,6 @@ export default function CarePlanPage({ pet, onClose }) {
           {/* EDUCATION */}
           {activeSection === 'education' && (
             <div className="max-w-3xl mx-auto animate-fade-in">
-
-              {/* Header with icon */}
               <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#FF8C42] to-[#FFA726] rounded-2xl mb-4 shadow-lg">
                   <span className="text-2xl">📚</span>
@@ -464,7 +450,6 @@ function PetUpdateCard({ pet, user }) {
 
   return (
     <div className="bg-white rounded-2xl border p-6 shadow-sm transition-all hover:shadow-md">
-      {/* Header with animation */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-xl transform transition-transform hover:scale-110">
           📸
@@ -494,7 +479,7 @@ function PetUpdateCard({ pet, user }) {
           </div>
         </div>
 
-        {/* Pet Details with icons */}
+        {/* Pet Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -527,7 +512,7 @@ function PetUpdateCard({ pet, user }) {
           </div>
         </div>
 
-        {/* Image Upload with improved UI */}
+        {/* Image Upload  */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Upload Pet Photos
@@ -551,7 +536,6 @@ function PetUpdateCard({ pet, user }) {
               <p className="text-sm text-gray-500">
                 <span className="font-semibold">Click to upload</span> 
               </p>
-              {/* <p className="text-xs text-gray-400">PNG, JPG or GIF</p> */}
             </div>
             <input
               type="file"
@@ -562,7 +546,7 @@ function PetUpdateCard({ pet, user }) {
             />
           </label>
 
-          {/* Preview with remove button */}
+          {/* Preview  */}
           {previewImages.length > 0 && (
             <div className="grid grid-cols-3 gap-3 mt-4">
               {previewImages.map((src, idx) => (
@@ -585,7 +569,7 @@ function PetUpdateCard({ pet, user }) {
           )}
         </div>
 
-        {/* Submit Button with loading state */}
+        {/* Submit Button */}
         <button
           onClick={handleSubmit}
           disabled={!notes.trim() || isSubmitting}
@@ -626,7 +610,7 @@ function PetUpdateCard({ pet, user }) {
           )}
         </button>
 
-        {/* Success Message with animation */}
+        {/* Success Message  */}
         {submitted && (
           <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg animate-pulse">
             <span className="text-xl">✅</span>
@@ -652,12 +636,9 @@ function CategoryCard({ icon, bg, title, description, onClick }) {
       `}
     >
       <div className="flex items-center gap-5">
-        {/* Icon */}
         <div className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shadow-sm bg-white/80">
           {icon}
         </div>
-
-        {/* Text */}
         <div className="flex-1">
           <h4 className="text-xl font-bold text-gray-800">
             {title}
@@ -666,8 +647,6 @@ function CategoryCard({ icon, bg, title, description, onClick }) {
             {description}
           </p>
         </div>
-
-        {/* Arrow */}
         <div className="text-gray-400 group-hover:translate-x-1 transition">
           →
         </div>

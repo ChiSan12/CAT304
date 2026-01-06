@@ -44,8 +44,7 @@ export default function CareReminderList({ petId, shelterId, adopterId, role = '
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          petId,
-          // adopterId,          
+          petId,         
           shelterId,
           title,
           dueDate,

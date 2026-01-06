@@ -11,7 +11,7 @@ const VeterinaryClinicSchema = new mongoose.Schema({
       default: "Point"
     },
     coordinates: {
-      type: [Number], // [lng, lat]
+      type: [Number], 
       required: true
     }
   }

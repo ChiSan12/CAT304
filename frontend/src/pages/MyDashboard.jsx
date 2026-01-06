@@ -18,7 +18,7 @@ export default function MyDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview"); // overview, requests, adopted
+  const [activeTab, setActiveTab] = useState("overview"); 
   const [viewCarePet, setViewCarePet] = useState(null);
 
   const [dashboardData, setDashboardData] = useState({
@@ -46,8 +46,6 @@ export default function MyDashboard() {
         setAdopter(data.adopter);
         const requests = data.adopter.adoptionRequests || [];
         const dbAdopted = data.adopter.adoptedPets || [];
-
-        // Treat 'Approved' requests as Adopted pets
         const approvedAsAdopted = requests
           .filter((r) => r.status === "Approved")
           .map((r) => ({

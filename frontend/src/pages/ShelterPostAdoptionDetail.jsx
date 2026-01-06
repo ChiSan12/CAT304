@@ -9,19 +9,12 @@ export default function ShelterPostAdoptionDetail() {
   const { user } = useAuth(); 
   const shelterId = user?.id; 
   const [updates, setUpdates] = useState([]);
-  // const [reminders, setReminders] = useState([]);
 
     useEffect(() => {
     // Fetch adopter updates
     fetch(`http://localhost:5000/api/pet-updates/pet/${petId}`)
         .then(res => res.json())
         .then(data => setUpdates(data.updates || []));
-
-    // Fetch care reminders
-    // fetch(`http://localhost:5000/api/reminders/pet/${petId}`)
-    //     .then(res => res.json())
-    //     .then(data => setReminders(data.reminders || []));
-    // }, [petId]);
     }, [petId]);
 
   return (
@@ -29,14 +22,13 @@ export default function ShelterPostAdoptionDetail() {
       <div className="flex-1 p-8 ml-64 space-y-10">
         <h1 className="text-3xl font-bold">Post-Adoption Timeline</h1>
 
-        {/* 🔔 REMINDERS */}
+        {/* REMINDERS */}
         <section>
           <h2 className="font-semibold mb-4">Care Reminders</h2>
-          {/* 🔥 USE SHARED COMPONENT WITH ROLE */}
+          {/* USE SHARED COMPONENT WITH ROLE */}
           <CareReminderList
             petId={petId}
             shelterId={shelterId}
-            // adopterId={adopterId}
             role="shelter"
           />
         </section>

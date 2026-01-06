@@ -6,7 +6,7 @@ const ReminderTemplate = require("./models/reminderTemplate");
 
 async function seedReminderTemplates() {
   try {
-    // 🔹 Connect to MongoDB (force test DB)
+    // Connect to MongoDB (force test DB)
     await mongoose.connect(process.env.MONGO_URI, {
       dbName: "test"
     });
@@ -14,7 +14,7 @@ async function seedReminderTemplates() {
     console.log("✅ MongoDB connected");
     console.log("📦 Connected DB:", mongoose.connection.name);
 
-    // 🔹 Find shelter (ADMIN)
+    // Find shelter (ADMIN)
     const shelter = await Shelter.findOne({
       email: "admin@petfoundus.com"
     });
@@ -26,13 +26,13 @@ async function seedReminderTemplates() {
 
     console.log("🏠 Using Shelter:", shelter.name);
 
-    // 🔹 Remove existing templates for clean reseed
+    //Remove existing templates for clean reseed
     const deleted = await ReminderTemplate.deleteMany({
       shelterId: shelter._id
     });
     console.log(`🗑️ Deleted ${deleted.deletedCount} existing reminder templates`);
 
-    // 🔹 Reminder Templates
+    // Reminder Templates
     const templates = [
     {
         shelterId: shelter._id,
@@ -64,7 +64,6 @@ async function seedReminderTemplates() {
     }
     ];
 
-    // 🔹 Insert templates
     const inserted = await ReminderTemplate.insertMany(templates);
 
     console.log(`✅ Inserted ${inserted.length} reminder templates`);

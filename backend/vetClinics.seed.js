@@ -11,9 +11,6 @@ async function seed() {
     console.log("MongoDB connected");
     console.log("Connected DB:", mongoose.connection.name);
 
-    // 🔹 OPTIONAL: clear existing clinics
-    // await VetClinic.deleteMany();
-
     const clinics = [
       {
         name: "Island Veterinary Clinic",
@@ -97,7 +94,6 @@ async function seed() {
       }
     ];
 
-    // 🔴 THIS WAS MISSING
     const inserted = await VetClinic.insertMany(clinics);
     console.log(`Inserted ${inserted.length} veterinary clinics`);
 
