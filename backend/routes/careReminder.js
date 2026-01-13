@@ -3,8 +3,6 @@ const router = express.Router();
 const Pet = require('../models/pet');
 const CareReminder = require('../models/careReminder');
 
-// console.log('✅ careReminder routes loaded');
-
 /**
  * ================================
  * GET reminders for a pet (Adopter)
@@ -40,17 +38,15 @@ router.get('/preview/:adopterId', async (req, res) => {
       isActive: true,
       status: { $ne: 'Completed' },
     })
-      .sort({ dueDate: 1 })
-      .limit(8)
-      .populate('petId', 'name')              
-      .select('title dueDate status petId')   
-      .lean();
+    .populate('petId', 'name')
+    .sort({ dueDate: 1 })
+    .lean();
 
-    const filteredReminders = reminders.filter(r => r.petId);
+    const cleanReminders = reminders.filter(r => r.petId);
 
     res.json({
       success: true,
-      reminders: filteredReminders
+      reminders: cleanReminders.slice(0, 10)
     });
 
   } catch (err) {

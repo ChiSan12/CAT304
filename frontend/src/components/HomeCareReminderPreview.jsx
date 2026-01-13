@@ -60,7 +60,7 @@ export default function HomeCareReminderPreview() {
                         <span className="font-semibold text-gray-700">
                           🐾 {r.petId.name}
                         </span>
-                        )}
+                    )}
                 </span>
                 {" • "}
                 Due {new Date(r.dueDate).toLocaleDateString()}
