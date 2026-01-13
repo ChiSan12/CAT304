@@ -125,12 +125,6 @@ export default function HomePage({ goTo }) {
               rescue efficiency and long-term animal welfare.
             </p>
 
-            {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-              <Stat number="120+" label="Pets Rescued" />
-              <Stat number="80+" label="Successful Adoptions" />
-              <Stat number="200+" label="Stray Reports Logged" />
-            </div> */}
-
             {/* ================= CARE REMINDER NOTIFICATION ================= */}
             <div className="lg:col-span-12 flex justify-center mt-10">
               <div className="w-full max-w-3xl bg-white rounded-3xl p-8 shadow-xl border border-orange-100">
@@ -188,8 +182,7 @@ export default function HomePage({ goTo }) {
               </span>
             </div>
           </div>
-        </div>
-
+          </div> 
         <p className="text-center text-sm text-gray-400 mt-16">
           © 2025 PET Found Us. All Rights Reserved.
         </p>
