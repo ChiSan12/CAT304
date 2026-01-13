@@ -30,15 +30,15 @@ router.get('/pet/:petId', async (req, res) => {
   }
 });
 
-// 🆕 ================================
-// 🆕 GET reminder preview (HOMEPAGE)
-// 🆕 ================================
+// ================================
+// GET reminder preview (HOMEPAGE)
+// ================================
 router.get('/preview/:adopterId', async (req, res) => {
   try {
     const reminders = await CareReminder.find({
       adopterId: req.params.adopterId,      
       isActive: true,
-      status: { $ne: 'Completed' }
+      status: { $ne: 'Completed' },
     })
       .sort({ dueDate: 1 })
       .limit(8)
@@ -46,9 +46,11 @@ router.get('/preview/:adopterId', async (req, res) => {
       .select('title dueDate status petId')   
       .lean();
 
+    const filteredReminders = reminders.filter(r => r.petId);
+
     res.json({
       success: true,
-      reminders
+      reminders: filteredReminders
     });
 
   } catch (err) {

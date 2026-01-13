@@ -12,11 +12,13 @@ export default function HomeCareReminderPreview() {
     fetch(`http://localhost:5000/api/reminders/preview/${user.id}`)
       .then(res => res.json())
       .then(data => {
+        console.log("PREVIEW REMINDERS:", data.reminders);
+
         setReminders(data.reminders || []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [user]);
+  }, [user?.id]);
 
   if (loading) {
     return (
@@ -54,7 +56,11 @@ export default function HomeCareReminderPreview() {
 
             <p className="text-xs mt-1 text-gray-600">
                 <span className="font-semibold text-gray-700">
-                    🐾 {r.petId?.name || "Unknown"}
+                    {r.petId && (
+                        <span className="font-semibold text-gray-700">
+                          🐾 {r.petId.name}
+                        </span>
+                        )}
                 </span>
                 {" • "}
                 Due {new Date(r.dueDate).toLocaleDateString()}

@@ -28,7 +28,7 @@ export default function CarePlanPage({ pet, onClose }) {
     <div className="fixed inset-0 bg-black/40 flex justify-center pt-24 z-50">
       <div
         className={`bg-gray-50 rounded-2xl shadow-xl transition-all flex flex-col ${
-          isLarge ? 'w-[95%] max-w-6xl' : 'w-full max-w-4xl'
+          isLarge ? 'w-[95%] h-[90vh] max-w-none' : 'w-full max-w-4xl h-[80vh]'
         }`}
       >
 
@@ -103,7 +103,7 @@ export default function CarePlanPage({ pet, onClose }) {
 
           {/* OVERVIEW GRID */}
           {!activeSection && (
-            <div className="grid space-y-6 grid-cols-1 gap-4">
+            <div className="grid space-y-6 grid-cols-1 gap-4 mx-auto ${isLarge ? 'max-w-6xl' : 'max-w-4xl'}`">
               <CategoryCard
                 icon="🩺"
                 bg="bg-gradient-to-br from-yellow-50 to-amber-100 border-amber-200"
@@ -140,7 +140,7 @@ export default function CarePlanPage({ pet, onClose }) {
 
           {/* CARE & HEALTH */}
           {activeSection === 'care' && (
-            <div className="max-w-4xl mx-auto animate-fade-in space-y-6">
+            <div className="mx-auto animate-fade-in space-y-6 ${isLarge ? 'max-w-6xl' : 'max-w-4xl'}">
               <div className="bg-white rounded-2xl border p-6 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center text-xl">
@@ -165,14 +165,14 @@ export default function CarePlanPage({ pet, onClose }) {
 
           {/*  PET UPDATE */}
           {activeSection === 'update' && (
-            <div className="max-w-4xl mx-auto animate-fade-in">
+            <div className="mx-auto animate-fade-in ${isLarge ? 'max-w-6xl' : 'max-w-4xl'}">
               <PetUpdateCard pet={pet} user={user} />
             </div>
           )}
 
           {/* VET CLINICS */}
           {activeSection === 'vet' && (
-            <div className="max-w-4xl mx-auto animate-fade-in">
+            <div className="mx-auto animate-fade-in ${isLarge ? 'max-w-6xl' : 'max-w-4xl'}">
               <VetClinicMap/>
             </div>
           )}
@@ -181,7 +181,7 @@ export default function CarePlanPage({ pet, onClose }) {
 
           {/* EDUCATION */}
           {activeSection === 'education' && (
-            <div className="max-w-3xl mx-auto animate-fade-in">
+            <div className="mx-auto animate-fade-in ${isLarge ? 'max-w-5xl' : 'max-w-3xl'}">
               <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#FF8C42] to-[#FFA726] rounded-2xl mb-4 shadow-lg">
                   <span className="text-2xl">📚</span>
@@ -288,7 +288,7 @@ export default function CarePlanPage({ pet, onClose }) {
 
           {/* 🐾 TRAINING */}
           {activeSection === 'training' && (
-            <div className="max-w-4xl mx-auto animate-fade-in">
+            <div className="mx-auto animate-fade-in ${isLarge ? 'max-w-6xl' : 'max-w-4xl'}">
               <button
                 onClick={() => setActiveSection('education')}
                 className="text-sm text-gray-500 mb-6 hover:text-[#FF8C42] transition-colors flex items-center gap-2"
@@ -316,7 +316,7 @@ export default function CarePlanPage({ pet, onClose }) {
 
           {/* 🥣 NUTRITION */}
           {activeSection === 'nutrition' && (
-            <div className="max-w-4xl mx-auto animate-fade-in">
+            <div className="mx-auto animate-fade-in ${isLarge ? 'max-w-6xl' : 'max-w-4xl'}">
               <button
                 onClick={() => setActiveSection('education')}
                 className="text-sm text-gray-500 mb-6 hover:text-[#FF8C42] transition-colors flex items-center gap-2"
@@ -345,7 +345,7 @@ export default function CarePlanPage({ pet, onClose }) {
 
                     {/* ❤️ OWNERSHIP */}
           {activeSection === 'ownership' && (
-            <div className="max-w-4xl mx-auto animate-fade-in">
+            <div className="mx-auto animate-fade-in ${isLarge ? 'max-w-6xl' : 'max-w-4xl'}">
               <button
                 onClick={() => setActiveSection('education')}
                 className="text-sm text-gray-500 mb-6 hover:text-[#FF8C42] transition-colors flex items-center gap-2"

@@ -140,12 +140,12 @@ export default function CareReminderList({ petId, shelterId, adopterId, role = '
             onChange={e => setDueDate(e.target.value)}
           />
 
-          <textarea
+          {/* <textarea
             className="border p-2 w-full mb-3"
             placeholder="Notes (optional)"
             value={notes}
             onChange={e => setNotes(e.target.value)}
-          />
+          /> */}
 
           <button
             onClick={handleCreateReminder}
